@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react'
-import type { Product } from '../data/menu'
-import { formatCurrency } from '../lib/format'
+import type { Product } from '../../domain/menu'
+import { formatCurrency } from '../../shared/format'
 
 type ProductCardProps = {
   product: Product

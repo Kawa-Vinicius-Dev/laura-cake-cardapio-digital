@@ -1,6 +1,6 @@
-import { deliveryAreas } from '../data/menu'
-import type { CartItem } from '../types'
-import { formatCurrency } from './format'
+import { deliveryAreas } from '../../data/menu'
+import type { CartItem } from '../../domain/order'
+import { formatCurrency } from '../../shared/format'
 
 export const getNeighborhoodName = (neighborhoodId: string) =>
   deliveryAreas.find((area) => area.id === neighborhoodId)?.name ??

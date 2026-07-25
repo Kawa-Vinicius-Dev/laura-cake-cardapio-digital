@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Check, ChefHat, Plus, X } from 'lucide-react'
-import { PASTEL_OPTIONS, type Product } from '../data/menu'
-import { formatCurrency } from '../lib/format'
-import type { PastelCustomization } from '../types'
-import { QuantityControl } from './QuantityControl'
+import { PASTEL_OPTIONS } from '../../data/menu'
+import type { Product } from '../../domain/menu'
+import type { PastelCustomization } from '../../domain/order'
+import { QuantityControl } from '../../shared/components/QuantityControl'
+import { formatCurrency } from '../../shared/format'
 
 type PastelCustomizerProps = {
   open: boolean

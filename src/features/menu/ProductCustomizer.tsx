@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Check, ListChecks, Plus, X } from 'lucide-react'
-import type { Product, ProductOption } from '../data/menu'
-import { formatCurrency } from '../lib/format'
-import type { CartAddonSelection } from '../types'
-import { QuantityControl } from './QuantityControl'
+import type { Product, ProductOption } from '../../domain/menu'
+import type { CartAddonSelection } from '../../domain/order'
+import { QuantityControl } from '../../shared/components/QuantityControl'
+import { formatCurrency } from '../../shared/format'
 
 type ProductCustomizerProps = {
   open: boolean

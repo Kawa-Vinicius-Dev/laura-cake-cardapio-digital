@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 import { nextLocalOrderNumber, saveLocalOrder } from './storage'
-import type { OrderPayload } from '../types'
+import type { OrderPayload } from '../domain/order'
 import {
   getCartItemUnitPrice,
   getItemDetails,
   getNeighborhoodName,
-} from './order'
+} from '../features/cart/cart-calculations'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim()
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim()

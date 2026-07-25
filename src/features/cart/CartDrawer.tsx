@@ -1,11 +1,11 @@
 import { ArrowRight, ShoppingBag, Trash2, X } from 'lucide-react'
-import type { CartItem } from '../types'
-import { formatCurrency } from '../lib/format'
+import type { CartItem } from '../../domain/order'
+import { QuantityControl } from '../../shared/components/QuantityControl'
+import { formatCurrency } from '../../shared/format'
 import {
   getCartItemBasePrice,
   getCartItemUnitPrice,
-} from '../lib/order'
-import { QuantityControl } from './QuantityControl'
+} from './cart-calculations'
 
 type CartDrawerProps = {
   open: boolean

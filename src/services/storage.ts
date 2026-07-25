@@ -1,4 +1,8 @@
-import type { CartItem, CustomerProfile, StoredOrder } from '../types'
+import type {
+  CartItem,
+  CustomerProfile,
+  StoredOrder,
+} from '../domain/order'
 
 const PROFILE_KEY = 'sabor-da-casa:customer:v1'
 const CART_KEY = 'sabor-da-casa:cart:v4'
