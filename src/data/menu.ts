@@ -162,7 +162,7 @@ export const products: Product[] = [
     categoryId: 'coxinhas',
     name: 'Coxinha',
     description:
-      'Coxinha dourada e crocante por fora, com recheio cremoso escolhido pelo cliente.',
+      'Massa crocante com opções de recheios preparados e bem temperados.',
     price: 7,
     image: images.coxinha,
     badge: '6 recheios',
@@ -172,25 +172,25 @@ export const products: Product[] = [
         'frango',
         'Frango',
         7,
-        'Coxinha dourada e crocante, recheada com frango bem temperado.',
+        'Massa crocante recheada com frango bem temperado.',
       ),
       option(
         'frango-catupiry',
         'Frango com Catupiry',
         8,
-        'Coxinha crocante recheada com frango temperado e Catupiry cremoso.',
+        'Massa crocante recheada com frango temperado e Catupiry cremoso.',
       ),
       option(
         'frango-cheddar',
         'Frango com Cheddar',
         8,
-        'Coxinha crocante recheada com frango temperado e cheddar cremoso.',
+        'Massa crocante recheada com frango temperado e cheddar cremoso.',
       ),
       option(
         'frango-cream-cheese',
         'Frango com Cream Cheese',
         10,
-        'Coxinha crocante recheada com frango temperado e cream cheese cremoso.',
+        'Massa crocante recheada com frango temperado e cream cheese cremoso.',
       ),
       option(
         'charque',
@@ -211,8 +211,8 @@ export const products: Product[] = [
     categoryId: 'tempura',
     name: 'Tempurá de Camarão',
     description:
-      'Porção com 10 deliciosas unidades de camarão empanado e crocante, acompanhadas de cream cheese cremoso.',
-    price: 14,
+      'Deliciosa porção de camarões empanados, dourados e crocantes, acompanhados de cream cheese.',
+    price: 19.9,
     image: images.tempura,
     badge: 'Destaque',
   },
@@ -221,7 +221,7 @@ export const products: Product[] = [
     categoryId: 'lanches',
     name: 'Hot Dog',
     description:
-      'Delicioso hot dog preparado na hora com pão, salsicha, molho especial, milho, ervilha, tomate, cebola e batata palha crocante.',
+      'Delicioso hot dog preparado na hora com pão, salsicha, molho especial, milho, ervilha, tomate, cebola, batata palha crocante, ketchup e mostarda.',
     price: 10,
     image: images.hotDog,
     addons: [homemadeMayoExtra],
@@ -231,7 +231,7 @@ export const products: Product[] = [
     categoryId: 'lanches',
     name: 'Hambúrguer',
     description:
-      'Delicioso hambúrguer preparado na hora com pão, carne caseira suculenta, maionese especial, cebola caramelizada, tomate, cebola e alface.',
+      'Hambúrguer preparado na hora com pão, deliciosa carne caseira, cebola caramelizada, salada e molho especial da casa.',
     price: 14,
     image: images.hamburguer,
     addons: [homemadeMayoExtra],
@@ -241,7 +241,7 @@ export const products: Product[] = [
     categoryId: 'lanches',
     name: 'X-Burger',
     description:
-      'Delicioso X-Burger preparado na hora com pão, carne caseira suculenta, queijo, maionese especial, cebola caramelizada, tomate, cebola e alface.',
+      'Delicioso X-Burger preparado na hora com pão, carne caseira, queijo muçarela, cebola caramelizada, salada e molho especial da casa.',
     price: 17,
     image: images.xBurger,
     addons: [homemadeMayoExtra],
