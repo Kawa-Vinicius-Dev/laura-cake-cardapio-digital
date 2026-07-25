@@ -16,9 +16,9 @@ import { PastelCustomizer } from '../features/menu/PastelCustomizer'
 import { ProductCard } from '../features/menu/ProductCard'
 import { ProductCustomizer } from '../features/menu/ProductCustomizer'
 import {
-  getCategoryAvailability,
   getProductAvailability,
   getStoreAvailability,
+  orderProductsByAvailability,
 } from '../features/menu/availability'
 import { STORE_CONFIG, categories, deliveryAreas, products } from '../data/menu'
 import type { Category, Product, ProductOption } from '../domain/menu'
@@ -43,25 +43,24 @@ function CategorySection({
   onActivate,
   onAdd,
 }: CategorySectionProps) {
-  const availability = getCategoryAvailability(category, currentTime)
   const orderedProducts = useMemo(
-    () =>
-      category.products
-        .map((product) => ({
-          product,
-          availability: getProductAvailability(product, currentTime),
-        }))
-        .sort(
-          (first, second) =>
-            Number(second.availability.available) -
-            Number(first.availability.available),
-        ),
+    () => orderProductsByAvailability(category.products, currentTime),
     [category.products, currentTime],
   )
+  const availableCount = orderedProducts.filter(
+    ({ availability }) => availability.available,
+  ).length
+  const categoryStatus =
+    availableCount > 0
+      ? `${availableCount} ${
+          availableCount === 1 ? 'item disponível' : 'itens disponíveis'
+        } agora`
+      : orderedProducts[0]?.availability.message ?? 'Nenhum item disponível agora'
 
   return (
     <section
       id={category.id}
+      data-category-id={category.id}
       className="scroll-mt-24"
       onMouseEnter={() => onActivate(category.id)}
     >
@@ -72,14 +71,12 @@ function CategorySection({
         <span className="hidden h-px min-w-8 flex-1 bg-ink/15 sm:block" />
         <span
           className={`rounded-full px-3 py-1.5 text-[0.65rem] font-extrabold uppercase tracking-[0.06em] ${
-            availability.available
+            availableCount > 0
               ? 'bg-mint/45 text-ink/65'
               : 'bg-tomato/10 text-tomato'
           }`}
         >
-          {availability.available
-            ? availability.scheduleLabel
-            : availability.message}
+          {categoryStatus}
         </span>
         <span className="text-xs font-extrabold text-ink/40">
           {String(category.products.length).padStart(2, '0')}
@@ -99,6 +96,15 @@ function CategorySection({
     </section>
   )
 }
+
+const productById = new Map(products.map((product) => [product.id, product]))
+const groupedProducts = categories.map((category) => ({
+  ...category,
+  products: category.productIds.flatMap((productId) => {
+    const product = productById.get(productId)
+    return product ? [product] : []
+  }),
+}))
 
 const getPastelItemId = (
   product: Product,
@@ -144,15 +150,6 @@ function App() {
     .filter((item) => !getProductAvailability(item.product, currentTime).available)
     .map((item) => item.id)
   const storeAvailability = getStoreAvailability(currentTime)
-
-  const groupedProducts = useMemo(
-    () =>
-      categories.map((category) => ({
-        ...category,
-        products: products.filter((product) => product.categoryId === category.id),
-      })),
-    [],
-  )
 
   useEffect(() => {
     saveCart(cart)
