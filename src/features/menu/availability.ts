@@ -3,9 +3,8 @@ import {
   MENU_TIMEZONE,
   STORE_HOURS,
   categories,
-  type Category,
-  type Product,
-} from '../data/menu'
+} from '../../data/menu'
+import type { Category, Product } from '../../domain/menu'
 
 export type Availability = {
   available: boolean

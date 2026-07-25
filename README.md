@@ -206,20 +206,39 @@ de estar disponível depois de ser adicionado.
 
 ## Estrutura do projeto
 
+O código segue uma organização por responsabilidade. O domínio contém somente
+modelos de negócio, as features concentram regras e interface de cada fluxo, e
+os serviços isolam persistência e integrações externas.
+
 ```text
 .
 ├── public/
-│   ├── products/              # Imagens dos produtos
-│   └── logo-laura-cake.png    # Identidade visual
+│   ├── products/                   # Imagens dos produtos
+│   └── logo-laura-cake.png         # Identidade visual
 ├── src/
-│   ├── components/            # Componentes da interface
-│   ├── data/                  # Cardápio e configurações da loja
-│   ├── lib/                   # Pedidos, storage, Supabase e WhatsApp
-│   ├── App.tsx                # Aplicação principal
-│   └── types.ts               # Tipos compartilhados
+│   ├── app/
+│   │   ├── App.tsx                 # Composição da aplicação
+│   │   └── styles.css              # Estilos globais
+│   ├── data/
+│   │   └── menu.ts                 # Cardápio e configurações da loja
+│   ├── domain/
+│   │   ├── menu.ts                 # Modelos do catálogo
+│   │   └── order.ts                # Modelos de carrinho e pedido
+│   ├── features/
+│   │   ├── cart/                   # Carrinho e cálculos de preço
+│   │   ├── checkout/               # Finalização do pedido
+│   │   └── menu/                   # Cards, modais e disponibilidade
+│   ├── services/
+│   │   ├── order-service.ts        # Registro no Supabase
+│   │   ├── storage.ts              # Persistência local
+│   │   └── whatsapp.ts             # Montagem da mensagem
+│   ├── shared/
+│   │   ├── components/             # Componentes reutilizáveis
+│   │   └── format.ts               # Formatação compartilhada
+│   └── main.tsx                    # Ponto de entrada
 ├── supabase/
-│   └── schema.sql             # Estrutura e funções do banco
-├── .env.example               # Exemplo das variáveis de ambiente
+│   └── schema.sql                  # Estrutura e funções do banco
+├── .env.example                    # Exemplo das variáveis de ambiente
 └── package.json
 ```
 
@@ -256,4 +275,3 @@ automaticamente.
 
 Desenvolvido por
 [Kawa Vinicius](https://github.com/Kawa-Vinicius-Dev).
-

@@ -11,12 +11,25 @@ import {
   Store,
   X,
 } from 'lucide-react'
-import { OTHER_DELIVERY_FEE, STORE_CONFIG, deliveryAreas } from '../data/menu'
-import { formatCurrency, formatOrderNumber, formatPhone, onlyDigits } from '../lib/format'
-import { loadCustomer, saveCustomer } from '../lib/storage'
-import { registerOrder } from '../lib/supabase'
-import { buildWhatsAppMessage, getWhatsAppUrl } from '../lib/whatsapp'
-import type { CartItem, CheckoutData, OrderPayload, PaymentMethod } from '../types'
+import { OTHER_DELIVERY_FEE, STORE_CONFIG, deliveryAreas } from '../../data/menu'
+import type {
+  CartItem,
+  CheckoutData,
+  OrderPayload,
+  PaymentMethod,
+} from '../../domain/order'
+import { registerOrder } from '../../services/order-service'
+import { loadCustomer, saveCustomer } from '../../services/storage'
+import {
+  buildWhatsAppMessage,
+  getWhatsAppUrl,
+} from '../../services/whatsapp'
+import {
+  formatCurrency,
+  formatOrderNumber,
+  formatPhone,
+  onlyDigits,
+} from '../../shared/format'
 
 type CheckoutModalProps = {
   open: boolean

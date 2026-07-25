@@ -1,12 +1,12 @@
 import { STORE_CONFIG } from '../data/menu'
-import type { OrderPayload } from '../types'
-import { formatCurrency, formatOrderNumber } from './format'
+import type { OrderPayload } from '../domain/order'
 import {
   getCartItemBasePrice,
   getCartItemUnitPrice,
   getItemDetails,
   getNeighborhoodName,
-} from './order'
+} from '../features/cart/cart-calculations'
+import { formatCurrency, formatOrderNumber } from '../shared/format'
 
 export const buildWhatsAppMessage = (order: OrderPayload, orderNumber: number) => {
   const items = order.items

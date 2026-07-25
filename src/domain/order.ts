@@ -1,4 +1,4 @@
-import type { Product, ProductAddon, ProductOption } from './data/menu'
+import type { Product, ProductAddon, ProductOption } from './menu'
 
 export type CartAddonSelection = {
   addon: ProductAddon

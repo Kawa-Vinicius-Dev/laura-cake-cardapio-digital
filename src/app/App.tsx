@@ -9,33 +9,26 @@ import {
   ShoppingBag,
   Sparkles,
 } from 'lucide-react'
-import { CartDrawer } from './components/CartDrawer'
-import { CheckoutModal } from './components/CheckoutModal'
-import { PastelCustomizer } from './components/PastelCustomizer'
-import { ProductCard } from './components/ProductCard'
-import { ProductCustomizer } from './components/ProductCustomizer'
-import {
-  STORE_CONFIG,
-  categories,
-  deliveryAreas,
-  products,
-  type Category,
-  type Product,
-  type ProductOption,
-} from './data/menu'
-import { formatCurrency } from './lib/format'
-import { getCartItemUnitPrice } from './lib/order'
-import { loadCart, saveCart } from './lib/storage'
-import type {
-  CartAddonSelection,
-  CartItem,
-  PastelCustomization,
-} from './types'
+import { CartDrawer } from '../features/cart/CartDrawer'
+import { getCartItemUnitPrice } from '../features/cart/cart-calculations'
+import { CheckoutModal } from '../features/checkout/CheckoutModal'
+import { PastelCustomizer } from '../features/menu/PastelCustomizer'
+import { ProductCard } from '../features/menu/ProductCard'
+import { ProductCustomizer } from '../features/menu/ProductCustomizer'
 import {
   getCategoryAvailability,
   getProductAvailability,
   getStoreAvailability,
-} from './lib/availability'
+} from '../features/menu/availability'
+import { STORE_CONFIG, categories, deliveryAreas, products } from '../data/menu'
+import type { Category, Product, ProductOption } from '../domain/menu'
+import type {
+  CartAddonSelection,
+  CartItem,
+  PastelCustomization,
+} from '../domain/order'
+import { loadCart, saveCart } from '../services/storage'
+import { formatCurrency } from '../shared/format'
 
 type CategorySectionProps = {
   category: Category & { products: Product[] }
