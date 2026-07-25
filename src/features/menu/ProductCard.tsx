@@ -18,7 +18,11 @@ export function ProductCard({
   const hasOptions = Boolean(product.options?.length)
 
   return (
-    <article className={`product-card group ${available ? '' : 'product-card-disabled'}`}>
+    <article
+      className={`product-card group ${available ? '' : 'product-card-disabled'}`}
+      data-product-id={product.id}
+      data-availability={available ? 'available' : 'unavailable'}
+    >
       <div className="relative aspect-[4/3] overflow-hidden bg-[#ddd9cb]">
         <img
           src={product.image}

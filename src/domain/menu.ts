@@ -1,9 +1,9 @@
-export type ScheduleId = 'lunch' | 'day' | 'night'
+export type ScheduleId = 'lunch' | 'day' | 'night' | 'soups'
 
 export type Category = {
   id: string
   name: string
-  scheduleId?: ScheduleId
+  productIds: readonly string[]
 }
 
 export type ProductOption = {
@@ -21,7 +21,7 @@ export type ProductAddon = {
 
 export type Product = {
   id: string
-  categoryId: string
+  scheduleId: ScheduleId
   name: string
   description: string
   price: number

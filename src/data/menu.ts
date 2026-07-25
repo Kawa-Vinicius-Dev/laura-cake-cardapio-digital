@@ -33,10 +33,11 @@ export const STORE_HOURS = {
   closedWeekdays: [0],
 } as const
 
-export const MENU_SCHEDULES: Record<ScheduleId, MenuSchedule> = {
+export const MENU_SCHEDULES: Record<ScheduleId, MenuSchedule | null> = {
   lunch: { startHour: 11, endHour: 15, label: 'Das 11h às 15h' },
   day: { startHour: 11, endHour: 22, label: 'Das 11h às 22h' },
   night: { startHour: 18, endHour: 22, label: 'Das 18h às 22h' },
+  soups: null,
 }
 
 export const PASTEL_OPTIONS = {
@@ -101,28 +102,51 @@ const homemadeMayoExtra: ProductAddon = {
 }
 
 export const categories: Category[] = [
-  { id: 'coxinhas', name: 'Coxinhas', scheduleId: 'day' },
-  { id: 'tempura', name: 'Tempurá', scheduleId: 'day' },
-  { id: 'lanches', name: 'Lanches', scheduleId: 'night' },
-  { id: 'pastel-montado', name: 'Pastel montado', scheduleId: 'night' },
-  { id: 'cuscuz-recheado', name: 'Cuscuz recheado', scheduleId: 'night' },
-  { id: 'tapiocas-salgadas', name: 'Tapiocas salgadas', scheduleId: 'night' },
-  { id: 'tapiocas-doces', name: 'Tapiocas doces', scheduleId: 'night' },
-  { id: 'batata-frita', name: 'Batata frita', scheduleId: 'day' },
-  { id: 'bolo-no-pote', name: 'Bolo no pote', scheduleId: 'day' },
-  { id: 'mini-bolo-vulcao', name: 'Mini Bolo Vulcão', scheduleId: 'day' },
-  { id: 'pratos-principais', name: 'Pratos principais', scheduleId: 'lunch' },
-  { id: 'yakisoba', name: 'Yakisoba', scheduleId: 'lunch' },
-  { id: 'fatias-de-bolo', name: 'Fatias de bolo', scheduleId: 'day' },
-  { id: 'bebidas', name: 'Bebidas', scheduleId: 'day' },
-  { id: 'sopas', name: 'Sopas' },
-  { id: 'tortas', name: 'Tortas', scheduleId: 'day' },
+  {
+    id: 'lanches-e-salgados',
+    name: 'Lanches e Salgados',
+    productIds: [
+      'hot-dog',
+      'hamburguer',
+      'x-burger',
+      'coxinha',
+      'camarao-empanado',
+      'pastel-3-sabores',
+      'pastel-6-sabores',
+      'batata-frita',
+    ],
+  },
+  {
+    id: 'refeicoes',
+    name: 'Refeições',
+    productIds: ['pratos-principais', 'yakisoba', 'sopa'],
+  },
+  {
+    id: 'cuscuz-e-tapiocas',
+    name: 'Cuscuz e Tapiocas',
+    productIds: ['cuscuz-recheado', 'tapioca-salgada', 'tapioca-doce'],
+  },
+  {
+    id: 'doces',
+    name: 'Doces',
+    productIds: [
+      'bolo-no-pote',
+      'mini-bolo-vulcao',
+      'fatia-de-bolo',
+      'torta-frango',
+    ],
+  },
+  {
+    id: 'bebidas',
+    name: 'Bebidas',
+    productIds: ['coca-cola', 'refrigerantes', 'agua'],
+  },
 ]
 
 export const products: Product[] = [
   {
     id: 'coxinha',
-    categoryId: 'coxinhas',
+    scheduleId: 'day',
     name: 'Coxinha',
     description:
       'Massa crocante com opções de recheios preparados e bem temperados.',
@@ -171,7 +195,7 @@ export const products: Product[] = [
   },
   {
     id: 'camarao-empanado',
-    categoryId: 'tempura',
+    scheduleId: 'day',
     name: 'Tempurá de Camarão',
     description:
       'Deliciosa porção de camarões empanados, dourados e crocantes, acompanhados de cream cheese.',
@@ -181,7 +205,7 @@ export const products: Product[] = [
   },
   {
     id: 'hot-dog',
-    categoryId: 'lanches',
+    scheduleId: 'night',
     name: 'Hot Dog',
     description:
       'Delicioso hot dog preparado na hora com pão, salsicha, molho especial, milho, ervilha, tomate, cebola, batata palha crocante, ketchup e mostarda.',
@@ -191,7 +215,7 @@ export const products: Product[] = [
   },
   {
     id: 'hamburguer',
-    categoryId: 'lanches',
+    scheduleId: 'night',
     name: 'Hambúrguer',
     description:
       'Hambúrguer preparado na hora com pão, deliciosa carne caseira, cebola caramelizada, salada e molho especial da casa.',
@@ -201,7 +225,7 @@ export const products: Product[] = [
   },
   {
     id: 'x-burger',
-    categoryId: 'lanches',
+    scheduleId: 'night',
     name: 'X-Burger',
     description:
       'Delicioso X-Burger preparado na hora com pão, carne caseira, queijo muçarela, cebola caramelizada, salada e molho especial da casa.',
@@ -211,8 +235,8 @@ export const products: Product[] = [
   },
   {
     id: 'pastel-3-sabores',
-    categoryId: 'pastel-montado',
-    name: 'Pastel com até 3 sabores',
+    scheduleId: 'night',
+    name: 'Pastel Montado — até 3 sabores',
     description:
       'Pastel crocante preparado com exatamente 3 sabores, 4 acompanhamentos e 2 molhos escolhidos pelo cliente.',
     price: 10,
@@ -222,8 +246,8 @@ export const products: Product[] = [
   },
   {
     id: 'pastel-6-sabores',
-    categoryId: 'pastel-montado',
-    name: 'Pastel com até 6 sabores',
+    scheduleId: 'night',
+    name: 'Pastel Montado — até 6 sabores',
     description:
       'Pastel crocante preparado com exatamente 6 sabores, 4 acompanhamentos e 2 molhos escolhidos pelo cliente.',
     price: 18,
@@ -233,8 +257,8 @@ export const products: Product[] = [
   },
   {
     id: 'cuscuz-recheado',
-    categoryId: 'cuscuz-recheado',
-    name: 'Cuscuz recheado',
+    scheduleId: 'night',
+    name: 'Cuscuz Recheado',
     description:
       'Cuscuz quentinho e recheado, preparado com carne e queijo coalho conforme a opção escolhida.',
     price: 16.5,
@@ -257,8 +281,8 @@ export const products: Product[] = [
   },
   {
     id: 'tapioca-salgada',
-    categoryId: 'tapiocas-salgadas',
-    name: 'Tapioca salgada',
+    scheduleId: 'night',
+    name: 'Tapioca Salgada',
     description:
       'Tapioca preparada na hora, leve e saborosa, com o recheio escolhido pelo cliente.',
     price: 8,
@@ -293,8 +317,8 @@ export const products: Product[] = [
   },
   {
     id: 'tapioca-doce',
-    categoryId: 'tapiocas-doces',
-    name: 'Tapioca doce',
+    scheduleId: 'night',
+    name: 'Tapioca Doce',
     description:
       'Tapioca preparada na hora com uma deliciosa opção de recheio doce escolhida pelo cliente.',
     price: 12,
@@ -323,8 +347,8 @@ export const products: Product[] = [
   },
   {
     id: 'batata-frita',
-    categoryId: 'batata-frita',
-    name: 'Batata frita',
+    scheduleId: 'day',
+    name: 'Batata Frita',
     description:
       'Porção de batatas fritas douradas e crocantes, disponível nos tamanhos pequeno, médio e grande.',
     price: 8,
@@ -353,8 +377,8 @@ export const products: Product[] = [
   },
   {
     id: 'bolo-no-pote',
-    categoryId: 'bolo-no-pote',
-    name: 'Bolo no pote',
+    scheduleId: 'day',
+    name: 'Bolo no Pote',
     description:
       'Camadas de bolo macio com recheio cremoso no sabor escolhido.',
     price: 10,
@@ -401,7 +425,7 @@ export const products: Product[] = [
   },
   {
     id: 'mini-bolo-vulcao',
-    categoryId: 'mini-bolo-vulcao',
+    scheduleId: 'day',
     name: 'Mini Bolo Vulcão',
     description:
       'Mini bolo macio com uma generosa cobertura cremosa no sabor escolhido.',
@@ -432,8 +456,8 @@ export const products: Product[] = [
   },
   {
     id: 'pratos-principais',
-    categoryId: 'pratos-principais',
-    name: 'Pratos principais',
+    scheduleId: 'lunch',
+    name: 'Pratos Principais',
     description:
       'Prato saboroso preparado para o almoço, com a receita escolhida pelo cliente.',
     price: 20,
@@ -468,7 +492,7 @@ export const products: Product[] = [
   },
   {
     id: 'yakisoba',
-    categoryId: 'yakisoba',
+    scheduleId: 'lunch',
     name: 'Yakisoba',
     description:
       'Macarrão oriental preparado com legumes, molho especial e a opção de proteína escolhida pelo cliente.',
@@ -511,8 +535,8 @@ export const products: Product[] = [
   },
   {
     id: 'fatia-de-bolo',
-    categoryId: 'fatias-de-bolo',
-    name: 'Fatia de bolo',
+    scheduleId: 'day',
+    name: 'Fatias de Bolo',
     description:
       'Fatia generosa de bolo macio no sabor escolhido pelo cliente.',
     price: 12,
@@ -535,7 +559,7 @@ export const products: Product[] = [
   },
   {
     id: 'coca-cola',
-    categoryId: 'bebidas',
+    scheduleId: 'day',
     name: 'Coca-Cola',
     description:
       'Coca-Cola gelada na versão tradicional ou zero e no tamanho escolhido.',
@@ -571,8 +595,8 @@ export const products: Product[] = [
   },
   {
     id: 'refrigerantes',
-    categoryId: 'bebidas',
-    name: 'Refrigerantes',
+    scheduleId: 'day',
+    name: 'Outros Refrigerantes',
     description:
       'Refrigerante gelado escolhido pelo cliente, com opções Kuat, Fanta ou Antarctica de 1 litro.',
     price: 7,
@@ -591,7 +615,7 @@ export const products: Product[] = [
   },
   {
     id: 'agua',
-    categoryId: 'bebidas',
+    scheduleId: 'day',
     name: 'Água',
     description:
       'Água mineral gelada, com ou sem gás, conforme a versão escolhida.',
@@ -615,8 +639,8 @@ export const products: Product[] = [
   },
   {
     id: 'sopa',
-    categoryId: 'sopas',
-    name: 'Sopa',
+    scheduleId: 'soups',
+    name: 'Sopas',
     description:
       'Sopa quentinha e bem temperada, preparada no sabor escolhido pelo cliente.',
     price: 10,
@@ -657,8 +681,8 @@ export const products: Product[] = [
   },
   {
     id: 'torta-frango',
-    categoryId: 'tortas',
-    name: 'Torta de frango',
+    scheduleId: 'day',
+    name: 'Torta de Frango',
     description:
       'Fatia de torta salgada com massa macia e delicioso recheio de frango.',
     price: 13,

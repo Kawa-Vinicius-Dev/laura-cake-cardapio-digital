@@ -2,9 +2,8 @@ import {
   MENU_SCHEDULES,
   MENU_TIMEZONE,
   STORE_HOURS,
-  categories,
 } from '../../data/menu'
-import type { Category, Product } from '../../domain/menu'
+import type { Product } from '../../domain/menu'
 
 export type Availability = {
   available: boolean
@@ -12,7 +11,10 @@ export type Availability = {
   scheduleLabel: string
 }
 
-const categoryById = new Map(categories.map((category) => [category.id, category]))
+export type ProductWithAvailability = {
+  product: Product
+  availability: Availability
+}
 
 const weekdayIndexes: Record<string, number> = {
   Sun: 0,
@@ -84,8 +86,8 @@ export const getStoreAvailability = (date = new Date()): Availability => {
   }
 }
 
-export const getCategoryAvailability = (
-  category: Category,
+export const getProductAvailability = (
+  product: Product,
   date = new Date(),
 ): Availability => {
   const storeAvailability = getStoreAvailability(date)
@@ -93,15 +95,15 @@ export const getCategoryAvailability = (
     return storeAvailability
   }
 
-  if (!category.scheduleId) {
+  const schedule = MENU_SCHEDULES[product.scheduleId]
+  if (!schedule) {
     return {
-      available: true,
-      message: '',
-      scheduleLabel: `Disponível até as ${STORE_HOURS.closeHour}h`,
+      available: false,
+      message: 'Horário de disponibilidade a confirmar',
+      scheduleLabel: 'Horário a confirmar',
     }
   }
 
-  const schedule = MENU_SCHEDULES[category.scheduleId]
   const { minutes: currentMinutes, weekday } = getStoreDateParts(date)
   const startMinutes = schedule.startHour * 60
   const endMinutes = schedule.endHour * 60
@@ -118,7 +120,7 @@ export const getCategoryAvailability = (
     }
   }
 
-  if (category.scheduleId === 'night') {
+  if (product.scheduleId === 'night') {
     return {
       available: false,
       message:
@@ -139,9 +141,20 @@ export const getCategoryAvailability = (
   }
 }
 
-export const getProductAvailability = (product: Product, date = new Date()) => {
-  const category = categoryById.get(product.categoryId)
-  return category
-    ? getCategoryAvailability(category, date)
-    : getStoreAvailability(date)
-}
+export const orderProductsByAvailability = (
+  products: readonly Product[],
+  date = new Date(),
+): ProductWithAvailability[] =>
+  products
+    .map((product, order) => ({
+      product,
+      order,
+      availability: getProductAvailability(product, date),
+    }))
+    .sort(
+      (first, second) =>
+        Number(second.availability.available) -
+          Number(first.availability.available) ||
+        first.order - second.order,
+    )
+    .map(({ product, availability }) => ({ product, availability }))
