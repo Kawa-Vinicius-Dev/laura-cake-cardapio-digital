@@ -101,6 +101,12 @@ const homemadeMayoExtra: ProductAddon = {
   price: 2,
 }
 
+const beansExtra: ProductAddon = {
+  id: 'feijao-extra',
+  name: 'Feijão',
+  price: 7,
+}
+
 export const categories: Category[] = [
   {
     id: 'lanches-e-salgados',
@@ -463,6 +469,7 @@ export const products: Product[] = [
     price: 20,
     image: images.prato,
     optionLabel: 'Escolha o prato',
+    addons: [beansExtra],
     options: [
       option(
         'frango-parmegiana',
