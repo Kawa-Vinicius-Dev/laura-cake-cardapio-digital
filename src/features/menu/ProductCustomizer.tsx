@@ -152,12 +152,12 @@ export function ProductCustomizer({
                         ) : null}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <strong className="block text-sm">{option.name}</strong>
-                        <small className="mt-1 block text-xs leading-5 text-ink/50">
+                        <strong className="block text-base">{option.name}</strong>
+                        <small className="mt-1 block text-sm leading-5 text-ink/55">
                           {option.description}
                         </small>
                       </span>
-                      <strong className="shrink-0 text-sm text-cobalt">
+                      <strong className="shrink-0 text-base text-cobalt">
                         {formatCurrency(option.price)}
                       </strong>
                     </label>
@@ -167,7 +167,7 @@ export function ProductCustomizer({
             </>
           ) : (
             <div className="rounded-2xl bg-white p-4">
-              <p className="text-sm leading-6 text-ink/60">{product?.description}</p>
+              <p className="text-base leading-7 text-ink/60">{product?.description}</p>
               <strong className="mt-2 block text-lg text-cobalt">
                 {formatCurrency(product?.price ?? 0)}
               </strong>
@@ -187,8 +187,8 @@ export function ProductCustomizer({
                   return (
                     <div key={addon.id} className="addon-choice">
                       <div className="min-w-0 flex-1">
-                        <strong className="block text-sm">{addon.name}</strong>
-                        <span className="mt-1 block text-xs font-bold text-cobalt">
+                        <strong className="block text-base">{addon.name}</strong>
+                        <span className="mt-1 block text-sm font-bold text-cobalt">
                           {formatCurrency(addon.price)} por unidade
                         </span>
                       </div>

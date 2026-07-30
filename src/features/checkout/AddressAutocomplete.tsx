@@ -170,7 +170,7 @@ export function AddressAutocomplete({
                 aria-selected={activeIndex === index}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => selectSuggestion(suggestion)}
-                className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition ${
+                className={`flex min-h-20 w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition ${
                   !suggestion.isWithinDeliveryRadius
                     ? 'cursor-not-allowed bg-ink/[0.025] opacity-55'
                     : activeIndex === index
@@ -184,10 +184,10 @@ export function AddressAutocomplete({
                   aria-hidden="true"
                 />
                 <span className="min-w-0">
-                  <strong className="block truncate text-sm">
+                  <strong className="block text-base leading-5">
                     {suggestion.street}
                   </strong>
-                  <small className="mt-0.5 block text-xs text-ink/55">
+                  <small className="mt-1 block text-sm leading-5 text-ink/55">
                     {[
                       suggestion.neighborhood,
                       `${suggestion.city}–${suggestion.state}`,
@@ -197,7 +197,7 @@ export function AddressAutocomplete({
                       .join(' · ')}
                   </small>
                   <small
-                    className={`mt-1 block text-xs font-bold ${
+                    className={`mt-1 block text-sm font-bold ${
                       suggestion.isWithinDeliveryRadius
                         ? 'text-emerald-700'
                         : 'text-tomato'
@@ -215,14 +215,14 @@ export function AddressAutocomplete({
           </div>
         ) : null}
       </div>
-      <p className={`mt-2 text-xs ${failed ? 'text-tomato' : 'text-ink/50'}`}>
+      <p className={`mt-2 text-sm leading-5 ${failed ? 'text-tomato' : 'text-ink/50'}`}>
         {failed
           ? 'Não foi possível calcular a distância. Tente novamente ou escolha retirada.'
           : hasSelectedStreet
             ? 'Local selecionado. Complete abaixo com número, bloco ou referência.'
             : `Digite pelo menos 3 letras para buscar ruas, condomínios e locais próximos.`}
       </p>
-      <p className="mt-1 text-[0.68rem] text-ink/35">
+      <p className="mt-1 text-xs text-ink/40">
         Busca de locais por{' '}
         <a
           href="https://www.openstreetmap.org/copyright"
