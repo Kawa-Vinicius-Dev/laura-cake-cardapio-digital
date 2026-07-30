@@ -36,12 +36,11 @@ export const buildWhatsAppMessage = (order: OrderPayload, orderNumber: number) =
     `Subtotal: ${formatCurrency(order.subtotal)}`,
     ...(order.orderType === 'delivery'
       ? [
-          order.deliveryFeePending
-            ? 'Taxa de entrega: A confirmar no WhatsApp'
-            : `Taxa de entrega: ${formatCurrency(order.deliveryFee)}`,
+          `Taxa de entrega: ${formatCurrency(order.deliveryFee)}`,
+          `Embalagem: ${formatCurrency(order.packagingFee)}`,
         ]
       : []),
-    `${order.deliveryFeePending ? 'Total parcial' : 'Total'}: ${formatCurrency(order.total)}`,
+    `Total: ${formatCurrency(order.total)}`,
     `Tipo: ${order.orderType === 'delivery' ? 'Entrega' : 'Retirada'}`,
     ...(order.orderType === 'delivery'
       ? [
