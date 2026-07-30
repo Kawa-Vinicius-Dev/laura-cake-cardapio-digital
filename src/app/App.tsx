@@ -331,7 +331,7 @@ function App() {
           <div className="relative mx-auto grid min-h-[42rem] max-w-7xl items-center gap-10 px-4 pb-16 sm:px-6 lg:min-h-[45rem] lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:pb-20">
             <div className="relative z-10 max-w-2xl pt-7 lg:pt-0">
               <div
-                className={`mb-7 inline-flex rotate-[-2deg] items-center gap-2 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.16em] shadow-[5px_5px_0_#101116] ${
+                className={`mb-7 inline-flex rotate-[-2deg] items-center gap-2 px-4 py-2 text-sm font-extrabold uppercase tracking-[0.12em] shadow-[5px_5px_0_#101116] sm:text-xs sm:tracking-[0.16em] ${
                   storeAvailability.available
                     ? 'bg-sun text-ink'
                     : 'bg-white text-tomato'
@@ -364,7 +364,7 @@ function App() {
                   Ver o cardápio
                   <ArrowRight size={19} aria-hidden="true" />
                 </button>
-                <div className="flex items-center gap-3 px-1 py-2 text-sm text-white/75 sm:px-4">
+                <div className="flex items-center gap-3 px-1 py-2 text-base text-white/80 sm:px-4 sm:text-sm">
                   <Clock3 size={18} className="text-sun" aria-hidden="true" />
                   {storeAvailability.available
                     ? `Entrega em ${STORE_CONFIG.deliveryEstimate}`
@@ -413,11 +413,11 @@ function App() {
 
         <section className="border-b border-ink/10 bg-white">
           <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-ink/10 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
-            <div className="flex items-center justify-center gap-3 py-5 text-sm font-bold sm:justify-start">
+            <div className="flex items-center justify-center gap-2 py-5 text-[0.9rem] font-bold sm:justify-start sm:gap-3 sm:text-sm">
               <MapPin size={18} className="text-tomato" aria-hidden="true" />
               Entrega e retirada
             </div>
-            <div className="flex items-center justify-center gap-3 py-5 text-sm font-bold">
+            <div className="flex items-center justify-center gap-2 py-5 text-[0.9rem] font-bold sm:gap-3 sm:text-sm">
               <MessageCircle size={18} className="text-cobalt" aria-hidden="true" />
               Pedido pelo WhatsApp
             </div>
@@ -437,7 +437,7 @@ function App() {
                   Nosso cardápio
                 </h2>
               </div>
-              <p className="max-w-sm text-sm leading-6 text-ink/60">
+              <p className="max-w-sm text-base leading-7 text-ink/60 sm:text-sm sm:leading-6">
                 Salgados, lanches, pratos, doces e bebidas preparados para todos os
                 momentos.
               </p>
@@ -511,7 +511,7 @@ function App() {
             <span className="grid size-9 place-items-center rounded-full bg-sun text-sm font-black text-ink">
               <ShoppingBag size={18} aria-hidden="true" />
             </span>
-            <span className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm">
+            <span className="flex min-w-0 flex-1 items-center gap-2 text-left text-base sm:text-sm">
               <strong>Carrinho</strong>
               <span className="text-white/45">•</span>
               <span className="truncate">

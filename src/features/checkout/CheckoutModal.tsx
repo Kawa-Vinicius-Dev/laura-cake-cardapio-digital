@@ -244,7 +244,7 @@ export function CheckoutModal({
               className="flex-1 overflow-y-auto px-5 py-6 pb-8 sm:px-7"
             >
               {hasUnavailableItems ? (
-                <div className="mb-6 flex gap-3 rounded-xl border border-tomato/20 bg-tomato/10 p-3 text-xs font-bold leading-5 text-tomato">
+                <div className="mb-6 flex gap-3 rounded-xl border border-tomato/20 bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
                   <AlertCircle className="mt-0.5 shrink-0" size={18} aria-hidden="true" />
                   Há itens fora do horário no carrinho. Volte e remova esses itens para
                   finalizar o pedido.
@@ -294,7 +294,7 @@ export function CheckoutModal({
                   </label>
                 </div>
                 {form.orderType === 'delivery' ? (
-                  <p className="mt-3 rounded-xl bg-sun/20 px-4 py-3 text-xs font-bold leading-5 text-ink/65">
+                  <p className="mt-3 rounded-xl bg-sun/20 px-4 py-3 text-sm font-bold leading-6 text-ink/65">
                     Pedidos para entrega recebem um acréscimo de{' '}
                     {formatCurrency(PACKAGING_FEE)} referente à embalagem.
                   </p>
@@ -369,7 +369,7 @@ export function CheckoutModal({
                       }
                       placeholder="Ex.: nº 715, casa 2, bloco B ou próximo à praça"
                     />
-                    <span className="mt-2 block text-xs text-ink/50">
+                    <span className="mt-2 block text-sm leading-5 text-ink/50 sm:text-xs">
                       Ajude a gente a encontrar você com mais facilidade.
                     </span>
                   </label>
@@ -426,11 +426,11 @@ export function CheckoutModal({
               </label>
 
               <div className="receipt mt-7">
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-base sm:text-sm">
                   <span className="text-ink/60">Subtotal</span>
                   <strong>{formatCurrency(subtotal)}</strong>
                 </div>
-                <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                <div className="mt-3 flex items-center justify-between gap-3 text-base sm:mt-2 sm:text-sm">
                   <span className="text-ink/60">Taxa de entrega</span>
                   <strong>
                     {form.orderType === 'pickup'
@@ -442,7 +442,7 @@ export function CheckoutModal({
                 </div>
                 {form.orderType === 'delivery' ? (
                   <>
-                    <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                    <div className="mt-3 flex items-center justify-between gap-3 text-base sm:mt-2 sm:text-sm">
                       <span className="text-ink/60">Embalagem</span>
                       <strong>{formatCurrency(packagingFee)}</strong>
                     </div>
@@ -454,7 +454,7 @@ export function CheckoutModal({
                 </div>
               </div>
 
-              <p className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold text-ink/50">
+              <p className="mt-4 flex items-center justify-center gap-2 text-sm font-semibold leading-5 text-ink/50 sm:text-xs">
                 <Clock3 size={14} aria-hidden="true" />
                 Seus dados ficam salvos somente neste navegador.
               </p>

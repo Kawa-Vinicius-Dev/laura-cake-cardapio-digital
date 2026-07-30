@@ -94,14 +94,14 @@ export function CartDrawer({
                         <div>
                           <h3 className="font-extrabold leading-tight">{item.product.name}</h3>
                           {item.selectedOption ? (
-                            <p className="mt-1 text-xs font-semibold leading-5 text-ink/60">
+                            <p className="mt-1 text-sm font-semibold leading-5 text-ink/60">
                               <span className="text-tomato">•</span>{' '}
                               {item.selectedOption.name} —{' '}
                               {formatCurrency(item.selectedOption.price)}
                             </p>
                           ) : null}
                           {item.selectedAddons?.length ? (
-                            <div className="mt-2 space-y-1 text-xs leading-5 text-ink/60">
+                            <div className="mt-2 space-y-1 text-sm leading-5 text-ink/60">
                               <p>
                                 Preço base — {formatCurrency(getCartItemBasePrice(item))}
                               </p>
@@ -132,7 +132,7 @@ export function CartDrawer({
                         </button>
                       </div>
                       {unavailableIds.has(item.id) ? (
-                        <p className="mt-2 text-xs font-extrabold text-tomato">
+                        <p className="mt-2 text-sm font-extrabold text-tomato">
                           Indisponível neste horário
                         </p>
                       ) : null}
@@ -151,7 +151,7 @@ export function CartDrawer({
                     </div>
                   </div>
                   {item.customization ? (
-                    <div className="mt-3 rounded-xl bg-paper p-3 text-xs leading-5 text-ink/65">
+                    <div className="mt-3 rounded-xl bg-paper p-3 text-sm leading-6 text-ink/65">
                       <p>
                         <strong className="text-ink">Sabores:</strong>{' '}
                         {item.customization.flavors.join(', ')}
@@ -174,7 +174,7 @@ export function CartDrawer({
                       maxLength={140}
                       onChange={(event) => onNotesChange(item.id, event.target.value)}
                       placeholder="Alguma observação? Ex.: sem cebola"
-                      className="field h-10 text-sm"
+                      className="field h-14 text-base"
                     />
                   </label>
                 </article>
@@ -194,7 +194,7 @@ export function CartDrawer({
                 <strong className="text-xl">{formatCurrency(subtotal)}</strong>
               </div>
               {unavailableItemIds.length > 0 ? (
-                <p className="mb-4 rounded-xl bg-tomato/10 p-3 text-xs font-bold leading-5 text-tomato">
+                <p className="mb-4 rounded-xl bg-tomato/10 p-3 text-sm font-bold leading-6 text-tomato">
                   Remova os itens indisponíveis para continuar com o pedido.
                 </p>
               ) : null}

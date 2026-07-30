@@ -37,26 +37,28 @@ export function ProductCard({
         {product.badge ? <span className="product-badge">{product.badge}</span> : null}
         {!available ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-ink/55 p-5 text-center text-white backdrop-blur-[1px]">
-            <span className="rounded-full bg-tomato px-4 py-2 text-[0.68rem] font-black uppercase tracking-[0.08em] shadow-lg">
+            <span className="rounded-full bg-tomato px-4 py-2 text-xs font-black uppercase tracking-[0.08em] shadow-lg sm:text-[0.68rem]">
               Indisponível agora
             </span>
-            <span className="mt-2 max-w-56 text-xs font-bold leading-5 text-white/90">
+            <span className="mt-2 max-w-64 text-sm font-bold leading-5 text-white/90 sm:max-w-56 sm:text-xs">
               {availabilityMessage}
             </span>
           </div>
         ) : null}
       </div>
       <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <h3 className="font-display text-[1.05rem] leading-tight uppercase text-ink sm:text-lg">
+        <h3 className="font-display text-xl leading-tight uppercase text-ink sm:text-lg">
           {product.name}
         </h3>
-        <p className="mt-2 text-sm leading-5 text-ink/65">{product.description}</p>
+        <p className="mt-2 text-base leading-6 text-ink/65 sm:text-sm sm:leading-5">
+          {product.description}
+        </p>
         <div className="mt-auto flex items-end justify-between gap-3 pt-5">
           <div>
-            <span className="block text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-ink/45">
+            <span className="block text-xs font-extrabold uppercase tracking-[0.12em] text-ink/45 sm:text-[0.65rem]">
               {hasOptions ? 'a partir de' : 'preço'}
             </span>
-            <strong className="text-lg font-extrabold text-ink">
+            <strong className="text-xl font-extrabold text-ink sm:text-lg">
               {formatCurrency(product.price)}
             </strong>
           </div>

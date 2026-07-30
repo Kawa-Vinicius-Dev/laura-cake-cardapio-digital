@@ -21,9 +21,9 @@ export function QuantityControl({
         className="quantity-button"
         aria-label={`Diminuir quantidade de ${label}`}
       >
-        <Minus aria-hidden="true" size={15} strokeWidth={2.5} />
+        <Minus aria-hidden="true" size={18} strokeWidth={2.5} />
       </button>
-      <span className="min-w-8 text-center text-sm font-extrabold" aria-live="polite">
+      <span className="min-w-9 text-center text-base font-extrabold" aria-live="polite">
         {quantity}
       </span>
       <button
@@ -32,7 +32,7 @@ export function QuantityControl({
         className="quantity-button"
         aria-label={`Aumentar quantidade de ${label}`}
       >
-        <Plus aria-hidden="true" size={15} strokeWidth={2.5} />
+        <Plus aria-hidden="true" size={18} strokeWidth={2.5} />
       </button>
     </div>
   )

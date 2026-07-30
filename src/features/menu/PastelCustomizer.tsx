@@ -151,7 +151,7 @@ export function PastelCustomizer({
         </header>
 
         <div className="flex-1 space-y-7 overflow-y-auto px-5 py-6 sm:px-7">
-          <p className="rounded-2xl bg-white p-4 text-sm leading-6 text-ink/60">
+          <p className="rounded-2xl bg-white p-4 text-base leading-7 text-ink/60">
             {product?.description}
           </p>
 
