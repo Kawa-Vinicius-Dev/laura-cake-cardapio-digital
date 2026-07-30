@@ -4,14 +4,13 @@ import {
   ArrowLeft,
   Bike,
   CheckCircle2,
-  ChevronDown,
   Clock3,
   MessageCircle,
   Store,
   X,
 } from 'lucide-react'
 import {
-  OTHER_DELIVERY_FEE,
+  DELIVERY_FEE_RANGES,
   PACKAGING_FEE,
   STORE_CONFIG,
   deliveryAreas,
@@ -83,10 +82,11 @@ export function CheckoutModal({
     whatsappUrl: string
   } | null>(null)
 
-  const selectedArea = deliveryAreas.find((area) => area.id === form.neighborhood)
   const deliveryFee =
-    form.orderType === 'delivery' && form.neighborhood
-      ? selectedArea?.fee ?? OTHER_DELIVERY_FEE
+    form.orderType === 'delivery' && deliveryDistanceKm !== null
+      ? DELIVERY_FEE_RANGES.find(
+          (range) => deliveryDistanceKm <= range.maxKm,
+        )?.fee ?? 0
       : 0
   const packagingFee = form.orderType === 'delivery' ? PACKAGING_FEE : 0
   const total = subtotal + deliveryFee + packagingFee
@@ -342,36 +342,19 @@ export function CheckoutModal({
                     onSelect={selectAddress}
                   />
 
-                  <label className="mt-5 block">
-                    <span className="field-label">Bairro e taxa de entrega</span>
-                    <span className="relative block">
-                      <select
-                        className="field appearance-none pr-11"
-                        required
-                        value={form.neighborhood}
-                        onChange={(event) => updateField('neighborhood', event.target.value)}
-                      >
-                        <option value="">Selecione o bairro</option>
-                        {deliveryAreas.map((area) => (
-                          <option key={area.id} value={area.id}>
-                            {area.name} — {formatCurrency(area.fee)}
-                          </option>
-                        ))}
-                        <option value="other">
-                          Outro bairro — {formatCurrency(OTHER_DELIVERY_FEE)}
-                        </option>
-                      </select>
-                      <ChevronDown
-                        size={18}
-                        className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-ink/45"
-                        aria-hidden="true"
-                      />
+                  <div
+                    className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-white px-4 py-3"
+                    aria-live="polite"
+                  >
+                    <span className="text-sm font-bold text-ink/60">
+                      Taxa de entrega
                     </span>
-                    <span className="mt-2 block text-xs text-ink/50">
-                      Ao escolher uma sugestão, o bairro e a taxa são preenchidos
-                      automaticamente. Você também pode corrigir manualmente.
-                    </span>
-                  </label>
+                    <strong className="shrink-0 text-xl text-tomato">
+                      {deliveryDistanceKm === null
+                        ? '—'
+                        : formatCurrency(deliveryFee)}
+                    </strong>
+                  </div>
                 </>
               ) : null}
 
@@ -434,21 +417,13 @@ export function CheckoutModal({
                   <strong>
                     {form.orderType === 'pickup'
                       ? 'Grátis'
-                      : form.neighborhood
-                        ? formatCurrency(deliveryFee)
-                        : 'Selecione o bairro'}
+                        : deliveryDistanceKm !== null
+                          ? formatCurrency(deliveryFee)
+                          : 'Escolha o endereço'}
                   </strong>
                 </div>
                 {form.orderType === 'delivery' ? (
                   <>
-                    <div className="mt-2 flex items-center justify-between gap-3 text-sm">
-                      <span className="text-ink/60">Distância estimada</span>
-                      <strong>
-                        {deliveryDistanceKm === null
-                          ? 'Escolha um endereço'
-                          : `${deliveryDistanceKm.toFixed(1)} km`}
-                      </strong>
-                    </div>
                     <div className="mt-2 flex items-center justify-between gap-3 text-sm">
                       <span className="text-ink/60">Embalagem</span>
                       <strong>{formatCurrency(packagingFee)}</strong>

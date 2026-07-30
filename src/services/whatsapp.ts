@@ -37,9 +37,6 @@ export const buildWhatsAppMessage = (order: OrderPayload, orderNumber: number) =
     ...(order.orderType === 'delivery'
       ? [
           `Taxa de entrega: ${formatCurrency(order.deliveryFee)}`,
-          ...(order.deliveryDistanceKm !== null
-            ? [`Distância estimada: ${order.deliveryDistanceKm.toFixed(1)} km`]
-            : []),
           `Embalagem: ${formatCurrency(order.packagingFee)}`,
         ]
       : []),

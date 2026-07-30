@@ -26,6 +26,11 @@ export const deliveryAreas: DeliveryArea[] = [
 
 export const OTHER_DELIVERY_FEE = 7
 export const PACKAGING_FEE = 1
+export const DELIVERY_FEE_RANGES = [
+  { maxKm: 2, fee: 5 },
+  { maxKm: 4, fee: 6 },
+  { maxKm: 6, fee: 7 },
+] as const
 export const DELIVERY_ADDRESS_CONFIG = {
   state: 'PE',
   city: 'Paulista',
