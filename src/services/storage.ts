@@ -1,12 +1,10 @@
 import type {
   CartItem,
   CustomerProfile,
-  StoredOrder,
 } from '../domain/order'
 
 const PROFILE_KEY = 'sabor-da-casa:customer:v1'
 const CART_KEY = 'sabor-da-casa:cart:v4'
-const ORDERS_KEY = 'sabor-da-casa:orders:v1'
 const SEQUENCE_KEY = 'sabor-da-casa:order-sequence:v2'
 const STORE_TIME_ZONE = 'America/Fortaleza'
 
@@ -47,11 +45,6 @@ export const loadCart = (): CartItem[] =>
 
 export const saveCart = (cart: CartItem[]) => {
   localStorage.setItem(CART_KEY, JSON.stringify(cart))
-}
-
-export const saveLocalOrder = (order: StoredOrder) => {
-  const orders = safeParse<StoredOrder[]>(localStorage.getItem(ORDERS_KEY), [])
-  localStorage.setItem(ORDERS_KEY, JSON.stringify([order, ...orders].slice(0, 30)))
 }
 
 const getStoreDate = (date: Date) => {

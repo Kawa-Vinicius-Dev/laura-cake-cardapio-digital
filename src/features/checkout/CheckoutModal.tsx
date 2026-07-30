@@ -6,20 +6,27 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock3,
-  MapPin,
   MessageCircle,
   Store,
   X,
 } from 'lucide-react'
-import { OTHER_DELIVERY_FEE, STORE_CONFIG, deliveryAreas } from '../../data/menu'
+import {
+  OTHER_DELIVERY_FEE,
+  PACKAGING_FEE,
+  STORE_CONFIG,
+  deliveryAreas,
+} from '../../data/menu'
 import type {
   CartItem,
   CheckoutData,
   OrderPayload,
   PaymentMethod,
 } from '../../domain/order'
-import { registerOrder } from '../../services/order-service'
-import { loadCustomer, saveCustomer } from '../../services/storage'
+import {
+  loadCustomer,
+  nextLocalOrderNumber,
+  saveCustomer,
+} from '../../services/storage'
 import {
   buildWhatsAppMessage,
   getWhatsAppUrl,
@@ -30,6 +37,8 @@ import {
   formatPhone,
   onlyDigits,
 } from '../../shared/format'
+import { AddressAutocomplete } from './AddressAutocomplete'
+import type { AddressSuggestion } from '../../services/address'
 
 type CheckoutModalProps = {
   open: boolean
@@ -42,6 +51,12 @@ type CheckoutModalProps = {
 }
 
 const paymentMethods: PaymentMethod[] = ['Pix', 'Cartão', 'Dinheiro']
+const normalizeNeighborhood = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLocaleLowerCase('pt-BR')
 
 export function CheckoutModal({
   open,
@@ -60,22 +75,27 @@ export function CheckoutModal({
     notes: '',
   }))
   const [submitting, setSubmitting] = useState(false)
+  const [deliveryDistanceKm, setDeliveryDistanceKm] = useState<number | null>(
+    null,
+  )
   const [completed, setCompleted] = useState<{
     orderNumber: number
-    storage: 'supabase' | 'local'
     whatsappUrl: string
   } | null>(null)
 
   const selectedArea = deliveryAreas.find((area) => area.id === form.neighborhood)
-  const deliveryFeePending = false
   const deliveryFee =
     form.orderType === 'delivery' && form.neighborhood
       ? selectedArea?.fee ?? OTHER_DELIVERY_FEE
       : 0
-  const total = subtotal + deliveryFee
+  const packagingFee = form.orderType === 'delivery' ? PACKAGING_FEE : 0
+  const total = subtotal + deliveryFee + packagingFee
   const deliveryReady =
     form.orderType === 'pickup' ||
-    (Boolean(form.neighborhood) && Boolean(form.address.trim()))
+    (deliveryDistanceKm !== null &&
+      Boolean(form.neighborhood) &&
+      Boolean(form.address.trim()) &&
+      /\d/.test(form.address))
   const canSubmit =
     items.length > 0 &&
     onlyDigits(form.phone).length >= 10 &&
@@ -87,7 +107,28 @@ export function CheckoutModal({
     setForm((current) => ({ ...current, [key]: value }))
   }
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const selectAddress = (suggestion: AddressSuggestion) => {
+    if (
+      !suggestion.isWithinDeliveryRadius ||
+      suggestion.distanceKm === null
+    ) {
+      return
+    }
+
+    const neighborhood = normalizeNeighborhood(suggestion.neighborhood)
+    const matchedArea = deliveryAreas.find(
+      (area) => normalizeNeighborhood(area.name) === neighborhood,
+    )
+
+    setForm((current) => ({
+      ...current,
+      address: `${suggestion.street}, `,
+      neighborhood: matchedArea?.id ?? 'other',
+    }))
+    setDeliveryDistanceKm(suggestion.distanceKm)
+  }
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!canSubmit || submitting) return
 
@@ -104,30 +145,29 @@ export function CheckoutModal({
       items,
       subtotal,
       deliveryFee,
-      deliveryFeePending,
+      deliveryDistanceKm:
+        form.orderType === 'delivery' ? deliveryDistanceKm : null,
+      packagingFee,
       total,
     }
 
-    try {
-      const result = await registerOrder(order)
-      saveCustomer({
-        name: form.name,
-        phone: form.phone,
-        address: form.address,
-        neighborhood: form.neighborhood,
-      })
-      const message = buildWhatsAppMessage(order, result.orderNumber)
-      const whatsappUrl = getWhatsAppUrl(message)
+    const orderNumber = nextLocalOrderNumber()
+    saveCustomer({
+      name: form.name,
+      phone: form.phone,
+      address: form.address,
+      neighborhood: form.neighborhood,
+    })
+    const message = buildWhatsAppMessage(order, orderNumber)
+    const whatsappUrl = getWhatsAppUrl(message)
 
-      setCompleted({ ...result, whatsappUrl })
-      onCompleted()
+    setCompleted({ orderNumber, whatsappUrl })
+    onCompleted()
 
-      if (whatsappWindow) {
-        whatsappWindow.location.href = whatsappUrl
-      }
-    } finally {
-      setSubmitting(false)
+    if (whatsappWindow) {
+      whatsappWindow.location.href = whatsappUrl
     }
+    setSubmitting(false)
   }
 
   const handleClose = () => {
@@ -167,9 +207,7 @@ export function CheckoutModal({
               {formatOrderNumber(completed.orderNumber)}
             </h2>
             <p className="mt-4 max-w-md text-sm leading-6 text-ink/65">
-              {completed.storage === 'supabase'
-                ? 'Pedido registrado com sucesso. Agora é só enviar a mensagem no WhatsApp.'
-                : 'Pedido salvo neste aparelho. Conecte o Supabase para registrar também na nuvem.'}
+              Seu pedido está pronto. Agora é só enviar a mensagem no WhatsApp.
             </p>
             <a
               href={completed.whatsappUrl}
@@ -255,6 +293,12 @@ export function CheckoutModal({
                     </span>
                   </label>
                 </div>
+                {form.orderType === 'delivery' ? (
+                  <p className="mt-3 rounded-xl bg-sun/20 px-4 py-3 text-xs font-bold leading-5 text-ink/65">
+                    Pedidos para entrega recebem um acréscimo de{' '}
+                    {formatCurrency(PACKAGING_FEE)} referente à embalagem.
+                  </p>
+                ) : null}
               </fieldset>
 
               <div className="mt-7 grid gap-5 sm:grid-cols-2">
@@ -287,8 +331,19 @@ export function CheckoutModal({
 
               {form.orderType === 'delivery' ? (
                 <>
+                  <AddressAutocomplete
+                    active={open}
+                    value={form.address}
+                    onChange={(value) => updateField('address', value)}
+                    onClearSelection={() => {
+                      updateField('neighborhood', '')
+                      setDeliveryDistanceKm(null)
+                    }}
+                    onSelect={selectAddress}
+                  />
+
                   <label className="mt-5 block">
-                    <span className="field-label">Bairro</span>
+                    <span className="field-label">Bairro e taxa de entrega</span>
                     <span className="relative block">
                       <select
                         className="field appearance-none pr-11"
@@ -312,25 +367,9 @@ export function CheckoutModal({
                         aria-hidden="true"
                       />
                     </span>
-                  </label>
-
-                  <label className="mt-5 block">
-                    <span className="field-label">Endereço completo</span>
-                    <span className="relative block">
-                      <MapPin
-                        size={18}
-                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40"
-                        aria-hidden="true"
-                      />
-                      <input
-                        className="field pl-11"
-                        required
-                        autoComplete="street-address"
-                        maxLength={220}
-                        value={form.address}
-                        onChange={(event) => updateField('address', event.target.value)}
-                        placeholder="Rua, número e complemento"
-                      />
+                    <span className="mt-2 block text-xs text-ink/50">
+                      Ao escolher uma sugestão, o bairro e a taxa são preenchidos
+                      automaticamente. Você também pode corrigir manualmente.
                     </span>
                   </label>
                 </>
@@ -392,20 +431,32 @@ export function CheckoutModal({
                 </div>
                 <div className="mt-2 flex items-center justify-between gap-3 text-sm">
                   <span className="text-ink/60">Taxa de entrega</span>
-                  <strong className={deliveryFeePending ? 'text-tomato' : ''}>
+                  <strong>
                     {form.orderType === 'pickup'
                       ? 'Grátis'
-                      : deliveryFeePending
-                        ? 'A confirmar'
-                        : selectedArea
-                          ? formatCurrency(deliveryFee)
-                          : 'Selecione o bairro'}
+                      : form.neighborhood
+                        ? formatCurrency(deliveryFee)
+                        : 'Selecione o bairro'}
                   </strong>
                 </div>
+                {form.orderType === 'delivery' ? (
+                  <>
+                    <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                      <span className="text-ink/60">Distância estimada</span>
+                      <strong>
+                        {deliveryDistanceKm === null
+                          ? 'Escolha um endereço'
+                          : `${deliveryDistanceKm.toFixed(1)} km`}
+                      </strong>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                      <span className="text-ink/60">Embalagem</span>
+                      <strong>{formatCurrency(packagingFee)}</strong>
+                    </div>
+                  </>
+                ) : null}
                 <div className="mt-4 flex items-center justify-between border-t border-dashed border-ink/25 pt-4">
-                  <span className="font-extrabold">
-                    {deliveryFeePending ? 'Total parcial' : 'Total'}
-                  </span>
+                  <span className="font-extrabold">Total</span>
                   <strong className="text-2xl">{formatCurrency(total)}</strong>
                 </div>
               </div>
@@ -422,7 +473,7 @@ export function CheckoutModal({
               >
                 <MessageCircle size={19} aria-hidden="true" />
                 {submitting
-                  ? 'Registrando pedido…'
+                  ? 'Preparando pedido…'
                   : `Enviar pedido pelo WhatsApp • ${formatCurrency(total)}`}
               </button>
             </form>

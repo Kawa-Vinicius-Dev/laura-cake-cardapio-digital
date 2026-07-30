@@ -43,13 +43,7 @@ export type OrderPayload = CheckoutData & {
   items: CartItem[]
   subtotal: number
   deliveryFee: number
-  deliveryFeePending: boolean
+  deliveryDistanceKm: number | null
+  packagingFee: number
   total: number
-}
-
-export type StoredOrder = OrderPayload & {
-  id: string
-  orderNumber: number
-  createdAt: string
-  syncStatus: 'local'
 }
