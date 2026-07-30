@@ -32,7 +32,6 @@ export function AddressAutocomplete({
   const [focused, setFocused] = useState(false)
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
   const [selectedStreet, setSelectedStreet] = useState('')
-  const [selectedDistanceKm, setSelectedDistanceKm] = useState<number | null>(null)
   const [activeIndex, setActiveIndex] = useState(-1)
   const [loading, setLoading] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -64,7 +63,7 @@ export function AddressAutocomplete({
       } finally {
         if (!controller.signal.aborted) setLoading(false)
       }
-    }, 400)
+    }, 250)
 
     return () => {
       window.clearTimeout(timeout)
@@ -75,7 +74,6 @@ export function AddressAutocomplete({
   const selectSuggestion = (suggestion: AddressSuggestion) => {
     if (!suggestion.isWithinDeliveryRadius) return
     setSelectedStreet(suggestion.street)
-    setSelectedDistanceKm(suggestion.distanceKm)
     setSuggestions([])
     setActiveIndex(-1)
     onSelect(suggestion)
@@ -88,7 +86,6 @@ export function AddressAutocomplete({
 
     if (!keepsSelectedStreet && selectedStreet) {
       setSelectedStreet('')
-      setSelectedDistanceKm(null)
       onClearSelection()
     }
 
@@ -204,8 +201,8 @@ export function AddressAutocomplete({
                     {suggestion.distanceKm === null
                       ? 'Não foi possível calcular a distância'
                       : suggestion.isWithinDeliveryRadius
-                        ? `${suggestion.distanceKm.toFixed(1)} km da loja`
-                        : `${suggestion.distanceKm.toFixed(1)} km · fora do raio de ${DELIVERY_ADDRESS_CONFIG.maxRadiusKm} km`}
+                        ? 'Disponível para entrega'
+                        : `Fora do raio de ${DELIVERY_ADDRESS_CONFIG.maxRadiusKm} km`}
                   </small>
                 </span>
               </button>
@@ -217,7 +214,7 @@ export function AddressAutocomplete({
         {failed
           ? 'Não foi possível calcular a distância. Tente novamente ou escolha retirada.'
           : hasSelectedStreet
-            ? `Endereço dentro da área de entrega (${selectedDistanceKm?.toFixed(1)} km). Agora informe o número.`
+            ? 'Endereço selecionado. Agora informe o número e o complemento.'
             : `Digite pelo menos 3 letras. Entregamos em um raio de até ${DELIVERY_ADDRESS_CONFIG.maxRadiusKm} km.`}
       </p>
     </div>
