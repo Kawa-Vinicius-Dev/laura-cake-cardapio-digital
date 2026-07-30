@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock3,
-  MapPin,
   MessageCircle,
   Store,
   X,
@@ -38,6 +37,8 @@ import {
   formatPhone,
   onlyDigits,
 } from '../../shared/format'
+import { AddressAutocomplete } from './AddressAutocomplete'
+import type { AddressSuggestion } from '../../services/address'
 
 type CheckoutModalProps = {
   open: boolean
@@ -50,6 +51,12 @@ type CheckoutModalProps = {
 }
 
 const paymentMethods: PaymentMethod[] = ['Pix', 'Cartão', 'Dinheiro']
+const normalizeNeighborhood = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLocaleLowerCase('pt-BR')
 
 export function CheckoutModal({
   open,
@@ -68,6 +75,9 @@ export function CheckoutModal({
     notes: '',
   }))
   const [submitting, setSubmitting] = useState(false)
+  const [deliveryDistanceKm, setDeliveryDistanceKm] = useState<number | null>(
+    null,
+  )
   const [completed, setCompleted] = useState<{
     orderNumber: number
     whatsappUrl: string
@@ -82,7 +92,10 @@ export function CheckoutModal({
   const total = subtotal + deliveryFee + packagingFee
   const deliveryReady =
     form.orderType === 'pickup' ||
-    (Boolean(form.neighborhood) && Boolean(form.address.trim()))
+    (deliveryDistanceKm !== null &&
+      Boolean(form.neighborhood) &&
+      Boolean(form.address.trim()) &&
+      /\d/.test(form.address))
   const canSubmit =
     items.length > 0 &&
     onlyDigits(form.phone).length >= 10 &&
@@ -92,6 +105,27 @@ export function CheckoutModal({
 
   const updateField = <K extends keyof CheckoutData>(key: K, value: CheckoutData[K]) => {
     setForm((current) => ({ ...current, [key]: value }))
+  }
+
+  const selectAddress = (suggestion: AddressSuggestion) => {
+    if (
+      !suggestion.isWithinDeliveryRadius ||
+      suggestion.distanceKm === null
+    ) {
+      return
+    }
+
+    const neighborhood = normalizeNeighborhood(suggestion.neighborhood)
+    const matchedArea = deliveryAreas.find(
+      (area) => normalizeNeighborhood(area.name) === neighborhood,
+    )
+
+    setForm((current) => ({
+      ...current,
+      address: `${suggestion.street}, `,
+      neighborhood: matchedArea?.id ?? 'other',
+    }))
+    setDeliveryDistanceKm(suggestion.distanceKm)
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -111,6 +145,8 @@ export function CheckoutModal({
       items,
       subtotal,
       deliveryFee,
+      deliveryDistanceKm:
+        form.orderType === 'delivery' ? deliveryDistanceKm : null,
       packagingFee,
       total,
     }
@@ -295,8 +331,19 @@ export function CheckoutModal({
 
               {form.orderType === 'delivery' ? (
                 <>
+                  <AddressAutocomplete
+                    active={open}
+                    value={form.address}
+                    onChange={(value) => updateField('address', value)}
+                    onClearSelection={() => {
+                      updateField('neighborhood', '')
+                      setDeliveryDistanceKm(null)
+                    }}
+                    onSelect={selectAddress}
+                  />
+
                   <label className="mt-5 block">
-                    <span className="field-label">Bairro</span>
+                    <span className="field-label">Bairro e taxa de entrega</span>
                     <span className="relative block">
                       <select
                         className="field appearance-none pr-11"
@@ -320,25 +367,9 @@ export function CheckoutModal({
                         aria-hidden="true"
                       />
                     </span>
-                  </label>
-
-                  <label className="mt-5 block">
-                    <span className="field-label">Endereço completo</span>
-                    <span className="relative block">
-                      <MapPin
-                        size={18}
-                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40"
-                        aria-hidden="true"
-                      />
-                      <input
-                        className="field pl-11"
-                        required
-                        autoComplete="street-address"
-                        maxLength={220}
-                        value={form.address}
-                        onChange={(event) => updateField('address', event.target.value)}
-                        placeholder="Rua, número e complemento"
-                      />
+                    <span className="mt-2 block text-xs text-ink/50">
+                      Ao escolher uma sugestão, o bairro e a taxa são preenchidos
+                      automaticamente. Você também pode corrigir manualmente.
                     </span>
                   </label>
                 </>
@@ -403,16 +434,26 @@ export function CheckoutModal({
                   <strong>
                     {form.orderType === 'pickup'
                       ? 'Grátis'
-                      : selectedArea
+                      : form.neighborhood
                         ? formatCurrency(deliveryFee)
                         : 'Selecione o bairro'}
                   </strong>
                 </div>
                 {form.orderType === 'delivery' ? (
-                  <div className="mt-2 flex items-center justify-between gap-3 text-sm">
-                    <span className="text-ink/60">Embalagem</span>
-                    <strong>{formatCurrency(packagingFee)}</strong>
-                  </div>
+                  <>
+                    <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                      <span className="text-ink/60">Distância estimada</span>
+                      <strong>
+                        {deliveryDistanceKm === null
+                          ? 'Escolha um endereço'
+                          : `${deliveryDistanceKm.toFixed(1)} km`}
+                      </strong>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                      <span className="text-ink/60">Embalagem</span>
+                      <strong>{formatCurrency(packagingFee)}</strong>
+                    </div>
+                  </>
                 ) : null}
                 <div className="mt-4 flex items-center justify-between border-t border-dashed border-ink/25 pt-4">
                   <span className="font-extrabold">Total</span>

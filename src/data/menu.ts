@@ -26,6 +26,16 @@ export const deliveryAreas: DeliveryArea[] = [
 
 export const OTHER_DELIVERY_FEE = 7
 export const PACKAGING_FEE = 1
+export const DELIVERY_ADDRESS_CONFIG = {
+  state: 'PE',
+  city: 'Paulista',
+  originAddress: 'R. João Alfredo, 715 - Cs 2 - Janga, Paulista - PE, 53437-320',
+  origin: {
+    latitude: -7.9294147,
+    longitude: -34.8310874,
+  },
+  maxRadiusKm: 6,
+} as const
 export const MENU_TIMEZONE = 'America/Fortaleza'
 
 export const STORE_HOURS = {

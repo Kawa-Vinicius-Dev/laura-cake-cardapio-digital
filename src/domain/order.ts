@@ -43,6 +43,7 @@ export type OrderPayload = CheckoutData & {
   items: CartItem[]
   subtotal: number
   deliveryFee: number
+  deliveryDistanceKm: number | null
   packagingFee: number
   total: number
 }
