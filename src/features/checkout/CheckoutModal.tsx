@@ -94,8 +94,7 @@ export function CheckoutModal({
     form.orderType === 'pickup' ||
     (deliveryDistanceKm !== null &&
       Boolean(form.neighborhood) &&
-      Boolean(form.address.trim()) &&
-      /\d/.test(form.address))
+      Boolean(form.address.trim()))
   const canSubmit =
     items.length > 0 &&
     onlyDigits(form.phone).length >= 10 &&
@@ -122,7 +121,7 @@ export function CheckoutModal({
 
     setForm((current) => ({
       ...current,
-      address: `${suggestion.street}, `,
+      address: suggestion.street,
       neighborhood: matchedArea?.id ?? 'other',
     }))
     setDeliveryDistanceKm(suggestion.distanceKm)
@@ -156,6 +155,7 @@ export function CheckoutModal({
       name: form.name,
       phone: form.phone,
       address: form.address,
+      addressReference: form.addressReference,
       neighborhood: form.neighborhood,
     })
     const message = buildWhatsAppMessage(order, orderNumber)
@@ -355,6 +355,24 @@ export function CheckoutModal({
                         : formatCurrency(deliveryFee)}
                     </strong>
                   </div>
+
+                  <label className="mt-4 block">
+                    <span className="field-label">
+                      Número, complemento ou ponto de referência
+                    </span>
+                    <input
+                      className="field"
+                      maxLength={160}
+                      value={form.addressReference}
+                      onChange={(event) =>
+                        updateField('addressReference', event.target.value)
+                      }
+                      placeholder="Ex.: nº 715, casa 2, bloco B ou próximo à praça"
+                    />
+                    <span className="mt-2 block text-xs text-ink/50">
+                      Ajude a gente a encontrar você com mais facilidade.
+                    </span>
+                  </label>
                 </>
               ) : null}
 

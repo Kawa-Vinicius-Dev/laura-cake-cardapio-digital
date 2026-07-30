@@ -29,6 +29,7 @@ export type CustomerProfile = {
   name: string
   phone: string
   address: string
+  addressReference: string
   neighborhood: string
 }
 

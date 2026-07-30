@@ -28,6 +28,7 @@ export const loadCustomer = (): CustomerProfile => {
     name: '',
     phone: '',
     address: '',
+    addressReference: '',
     neighborhood: '',
   }
   return {
