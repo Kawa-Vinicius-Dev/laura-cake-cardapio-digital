@@ -118,7 +118,7 @@ export function AddressAutocomplete({
   return (
     <div className="mt-5">
       <label htmlFor={`${listId}-input`} className="field-label">
-        Endereço para entrega
+        Endereço, condomínio ou ponto conhecido
       </label>
       <div className="relative">
         <MapPin
@@ -137,7 +137,7 @@ export function AddressAutocomplete({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           onKeyDown={handleKeyDown}
-          placeholder="Comece digitando o nome da rua"
+          placeholder="Ex.: Rua João Alfredo ou Condomínio Parque Janga"
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={listVisible}
@@ -188,8 +188,13 @@ export function AddressAutocomplete({
                     {suggestion.street}
                   </strong>
                   <small className="mt-0.5 block text-xs text-ink/55">
-                    {suggestion.neighborhood} · {suggestion.city}–{suggestion.state} ·{' '}
-                    {suggestion.cep}
+                    {[
+                      suggestion.neighborhood,
+                      `${suggestion.city}–${suggestion.state}`,
+                      suggestion.cep,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </small>
                   <small
                     className={`mt-1 block text-xs font-bold ${
@@ -214,8 +219,20 @@ export function AddressAutocomplete({
         {failed
           ? 'Não foi possível calcular a distância. Tente novamente ou escolha retirada.'
           : hasSelectedStreet
-            ? 'Endereço selecionado. Agora informe o número e o complemento.'
-            : `Digite pelo menos 3 letras. Entregamos em um raio de até ${DELIVERY_ADDRESS_CONFIG.maxRadiusKm} km.`}
+            ? 'Local selecionado. Complete abaixo com número, bloco ou referência.'
+            : `Digite pelo menos 3 letras para buscar ruas, condomínios e locais próximos.`}
+      </p>
+      <p className="mt-1 text-[0.68rem] text-ink/35">
+        Busca de locais por{' '}
+        <a
+          href="https://www.openstreetmap.org/copyright"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2"
+        >
+          OpenStreetMap
+        </a>
+        .
       </p>
     </div>
   )

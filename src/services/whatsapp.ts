@@ -46,6 +46,9 @@ export const buildWhatsAppMessage = (order: OrderPayload, orderNumber: number) =
       ? [
           `Bairro: ${getNeighborhoodName(order.neighborhood)}`,
           `Endereço: ${order.address}`,
+          ...(order.addressReference
+            ? [`Complemento / referência: ${order.addressReference}`]
+            : []),
         ]
       : []),
     `Pagamento: ${order.paymentMethod}`,

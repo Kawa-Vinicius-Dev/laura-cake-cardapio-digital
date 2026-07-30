@@ -1,12 +1,44 @@
 import { DELIVERY_ADDRESS_CONFIG } from '../data/menu'
 
+type PhotonFeature = {
+  geometry?: {
+    coordinates?: [number, number]
+  }
+  properties?: {
+    name?: string
+    street?: string
+    housenumber?: string
+    district?: string
+    locality?: string
+    city?: string
+    postcode?: string
+    state?: string
+    countrycode?: string
+    osm_type?: string
+    osm_id?: number
+  }
+}
+
+type PhotonResponse = {
+  features?: PhotonFeature[]
+}
+
 type ViaCepAddress = {
   cep?: string
   logradouro?: string
-  complemento?: string
   bairro?: string
   localidade?: string
   uf?: string
+}
+
+type AwesomeCepAddress = {
+  lat?: string
+  lng?: string
+}
+
+type Coordinates = {
+  latitude: number
+  longitude: number
 }
 
 export type AddressSuggestion = {
@@ -23,16 +55,6 @@ export type AddressSuggestion = {
 const suggestionCache = new Map<string, AddressSuggestion[]>()
 const coordinatesCache = new Map<string, Coordinates | null>()
 
-type Coordinates = {
-  latitude: number
-  longitude: number
-}
-
-type AwesomeCepAddress = {
-  lat?: string
-  lng?: string
-}
-
 const degreesToRadians = (degrees: number) => (degrees * Math.PI) / 180
 
 const calculateDistanceKm = (from: Coordinates, to: Coordinates) => {
@@ -48,6 +70,84 @@ const calculateDistanceKm = (from: Coordinates, to: Coordinates) => {
       Math.sin(longitudeDistance / 2) ** 2
 
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+}
+
+const normalizeSearch = (value: string) =>
+  value.trim().replace(/\s+/g, ' ').trim()
+
+const normalizePlaceName = (value: string) =>
+  value
+    .replace(/^Comdomínio\b/i, 'Condomínio')
+    .replace(/\bpraia do Janga\b/i, 'Praia do Janga')
+
+const searchKnownPlaces = async (
+  query: string,
+  signal?: AbortSignal,
+): Promise<AddressSuggestion[]> => {
+  const { city, state, origin, maxRadiusKm } = DELIVERY_ADDRESS_CONFIG
+  const searchAreaKm = 12
+  const latitudeDelta = searchAreaKm / 111
+  const longitudeDelta =
+    searchAreaKm / (111 * Math.cos(degreesToRadians(origin.latitude)))
+  const bbox = [
+    origin.longitude - longitudeDelta,
+    origin.latitude - latitudeDelta,
+    origin.longitude + longitudeDelta,
+    origin.latitude + latitudeDelta,
+  ].join(',')
+  const endpoint = new URL('https://photon.komoot.io/api/')
+
+  endpoint.searchParams.set('q', `${query}, ${city}, ${state}`)
+  endpoint.searchParams.set('lat', String(origin.latitude))
+  endpoint.searchParams.set('lon', String(origin.longitude))
+  endpoint.searchParams.set('bbox', bbox)
+  endpoint.searchParams.set('limit', '8')
+
+  const response = await fetch(endpoint, { signal })
+  if (!response.ok) return []
+
+  const data = (await response.json()) as PhotonResponse
+  const uniqueSuggestions = new Map<string, AddressSuggestion>()
+
+  for (const feature of data.features ?? []) {
+    const properties = feature.properties
+    const coordinates = feature.geometry?.coordinates
+    const longitude = Number(coordinates?.[0])
+    const latitude = Number(coordinates?.[1])
+    const rawName = properties?.name?.trim() || properties?.street?.trim()
+    const name = rawName ? normalizePlaceName(rawName) : ''
+    if (
+      !properties ||
+      !name ||
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
+    ) {
+      continue
+    }
+
+    const distanceKm = calculateDistanceKm(origin, { latitude, longitude })
+    const neighborhood =
+      properties.district?.trim() ||
+      properties.locality?.trim() ||
+      properties.city?.trim() ||
+      city
+    const id =
+      `${properties.osm_type ?? 'place'}-${properties.osm_id ?? `${latitude}-${longitude}`}`
+    if (uniqueSuggestions.has(id)) continue
+
+    uniqueSuggestions.set(id, {
+      id,
+      cep: properties.postcode?.trim() || '',
+      street: name,
+      neighborhood,
+      city: properties.city?.trim() || city,
+      state,
+      distanceKm,
+      isWithinDeliveryRadius: distanceKm <= maxRadiusKm,
+    })
+  }
+
+  return Array.from(uniqueSuggestions.values()).slice(0, 6)
 }
 
 const getCepCoordinates = async (
@@ -81,12 +181,51 @@ const getCepCoordinates = async (
   }
 }
 
-const normalizeSearch = (value: string) =>
-  value
-    .trim()
-    .replace(/\s+/g, ' ')
-    .replace(/[,\d].*$/, '')
-    .trim()
+const searchOfficialStreets = async (
+  query: string,
+  signal?: AbortSignal,
+): Promise<AddressSuggestion[]> => {
+  const { state, city, origin, maxRadiusKm } = DELIVERY_ADDRESS_CONFIG
+  const streetQuery = query.replace(/,.*$/, '').trim()
+  const endpoint = `https://viacep.com.br/ws/${state}/${encodeURIComponent(
+    city,
+  )}/${encodeURIComponent(streetQuery)}/json/`
+  const response = await fetch(endpoint, { signal })
+  if (!response.ok) return []
+
+  const data = (await response.json()) as ViaCepAddress[]
+  if (!Array.isArray(data)) return []
+
+  const uniqueSuggestions = new Map<string, AddressSuggestion>()
+  for (const address of data) {
+    const street = address.logradouro?.trim()
+    const neighborhood = address.bairro?.trim()
+    const cep = address.cep?.trim()
+    if (!street || !neighborhood || !cep) continue
+
+    const id = `${cep}-${street}-${neighborhood}`
+    if (uniqueSuggestions.has(id)) continue
+    const coordinates = await getCepCoordinates(cep, signal)
+    const distanceKm = coordinates
+      ? calculateDistanceKm(origin, coordinates)
+      : null
+
+    uniqueSuggestions.set(id, {
+      id,
+      cep,
+      street,
+      neighborhood,
+      city: address.localidade?.trim() || city,
+      state: address.uf?.trim() || state,
+      distanceKm,
+      isWithinDeliveryRadius:
+        distanceKm !== null && distanceKm <= maxRadiusKm,
+    })
+    if (uniqueSuggestions.size === 6) break
+  }
+
+  return Array.from(uniqueSuggestions.values())
+}
 
 export const searchDeliveryAddresses = async (
   value: string,
@@ -99,59 +238,17 @@ export const searchDeliveryAddresses = async (
   const cached = suggestionCache.get(cacheKey)
   if (cached) return cached
 
-  const { state, city } = DELIVERY_ADDRESS_CONFIG
-  const endpoint = `https://viacep.com.br/ws/${state}/${encodeURIComponent(
-    city,
-  )}/${encodeURIComponent(query)}/json/`
-  const response = await fetch(endpoint, { signal })
-
-  if (!response.ok) {
-    throw new Error('Não foi possível consultar os endereços.')
+  try {
+    const knownPlaces = await searchKnownPlaces(query, signal)
+    if (knownPlaces.length) {
+      suggestionCache.set(cacheKey, knownPlaces)
+      return knownPlaces
+    }
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error
   }
 
-  const data = (await response.json()) as ViaCepAddress[]
-  const uniqueSuggestions = new Map<string, AddressSuggestion>()
-
-  if (Array.isArray(data)) {
-    data.forEach((address) => {
-      const street = address.logradouro?.trim()
-      const neighborhood = address.bairro?.trim()
-      const cep = address.cep?.trim()
-      if (!street || !neighborhood || !cep) return
-
-      const id = `${cep}-${street}-${neighborhood}`
-      if (uniqueSuggestions.has(id)) return
-
-      uniqueSuggestions.set(id, {
-        id,
-        cep,
-        street,
-        neighborhood,
-        city: address.localidade?.trim() || city,
-        state: address.uf?.trim() || state,
-        distanceKm: null,
-        isWithinDeliveryRadius: false,
-      })
-    })
-  }
-
-  const basicSuggestions = Array.from(uniqueSuggestions.values()).slice(0, 6)
-  const { origin, maxRadiusKm } = DELIVERY_ADDRESS_CONFIG
-  const suggestions = await Promise.all(
-    basicSuggestions.map(async (suggestion) => {
-      const coordinates = await getCepCoordinates(suggestion.cep, signal)
-      const distanceKm = coordinates
-        ? calculateDistanceKm(origin, coordinates)
-        : null
-
-      return {
-        ...suggestion,
-        distanceKm,
-        isWithinDeliveryRadius:
-          distanceKm !== null && distanceKm <= maxRadiusKm,
-      }
-    }),
-  )
-  suggestionCache.set(cacheKey, suggestions)
-  return suggestions
+  const officialStreets = await searchOfficialStreets(query, signal)
+  suggestionCache.set(cacheKey, officialStreets)
+  return officialStreets
 }
