@@ -11,15 +11,23 @@ import {
   Store,
   X,
 } from 'lucide-react'
-import { OTHER_DELIVERY_FEE, STORE_CONFIG, deliveryAreas } from '../../data/menu'
+import {
+  OTHER_DELIVERY_FEE,
+  PACKAGING_FEE,
+  STORE_CONFIG,
+  deliveryAreas,
+} from '../../data/menu'
 import type {
   CartItem,
   CheckoutData,
   OrderPayload,
   PaymentMethod,
 } from '../../domain/order'
-import { registerOrder } from '../../services/order-service'
-import { loadCustomer, saveCustomer } from '../../services/storage'
+import {
+  loadCustomer,
+  nextLocalOrderNumber,
+  saveCustomer,
+} from '../../services/storage'
 import {
   buildWhatsAppMessage,
   getWhatsAppUrl,
@@ -62,17 +70,16 @@ export function CheckoutModal({
   const [submitting, setSubmitting] = useState(false)
   const [completed, setCompleted] = useState<{
     orderNumber: number
-    storage: 'supabase' | 'local'
     whatsappUrl: string
   } | null>(null)
 
   const selectedArea = deliveryAreas.find((area) => area.id === form.neighborhood)
-  const deliveryFeePending = false
   const deliveryFee =
     form.orderType === 'delivery' && form.neighborhood
       ? selectedArea?.fee ?? OTHER_DELIVERY_FEE
       : 0
-  const total = subtotal + deliveryFee
+  const packagingFee = form.orderType === 'delivery' ? PACKAGING_FEE : 0
+  const total = subtotal + deliveryFee + packagingFee
   const deliveryReady =
     form.orderType === 'pickup' ||
     (Boolean(form.neighborhood) && Boolean(form.address.trim()))
@@ -87,7 +94,7 @@ export function CheckoutModal({
     setForm((current) => ({ ...current, [key]: value }))
   }
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!canSubmit || submitting) return
 
@@ -104,30 +111,27 @@ export function CheckoutModal({
       items,
       subtotal,
       deliveryFee,
-      deliveryFeePending,
+      packagingFee,
       total,
     }
 
-    try {
-      const result = await registerOrder(order)
-      saveCustomer({
-        name: form.name,
-        phone: form.phone,
-        address: form.address,
-        neighborhood: form.neighborhood,
-      })
-      const message = buildWhatsAppMessage(order, result.orderNumber)
-      const whatsappUrl = getWhatsAppUrl(message)
+    const orderNumber = nextLocalOrderNumber()
+    saveCustomer({
+      name: form.name,
+      phone: form.phone,
+      address: form.address,
+      neighborhood: form.neighborhood,
+    })
+    const message = buildWhatsAppMessage(order, orderNumber)
+    const whatsappUrl = getWhatsAppUrl(message)
 
-      setCompleted({ ...result, whatsappUrl })
-      onCompleted()
+    setCompleted({ orderNumber, whatsappUrl })
+    onCompleted()
 
-      if (whatsappWindow) {
-        whatsappWindow.location.href = whatsappUrl
-      }
-    } finally {
-      setSubmitting(false)
+    if (whatsappWindow) {
+      whatsappWindow.location.href = whatsappUrl
     }
+    setSubmitting(false)
   }
 
   const handleClose = () => {
@@ -167,9 +171,7 @@ export function CheckoutModal({
               {formatOrderNumber(completed.orderNumber)}
             </h2>
             <p className="mt-4 max-w-md text-sm leading-6 text-ink/65">
-              {completed.storage === 'supabase'
-                ? 'Pedido registrado com sucesso. Agora é só enviar a mensagem no WhatsApp.'
-                : 'Pedido salvo neste aparelho. Conecte o Supabase para registrar também na nuvem.'}
+              Seu pedido está pronto. Agora é só enviar a mensagem no WhatsApp.
             </p>
             <a
               href={completed.whatsappUrl}
@@ -255,6 +257,12 @@ export function CheckoutModal({
                     </span>
                   </label>
                 </div>
+                {form.orderType === 'delivery' ? (
+                  <p className="mt-3 rounded-xl bg-sun/20 px-4 py-3 text-xs font-bold leading-5 text-ink/65">
+                    Pedidos para entrega recebem um acréscimo de{' '}
+                    {formatCurrency(PACKAGING_FEE)} referente à embalagem.
+                  </p>
+                ) : null}
               </fieldset>
 
               <div className="mt-7 grid gap-5 sm:grid-cols-2">
@@ -392,20 +400,22 @@ export function CheckoutModal({
                 </div>
                 <div className="mt-2 flex items-center justify-between gap-3 text-sm">
                   <span className="text-ink/60">Taxa de entrega</span>
-                  <strong className={deliveryFeePending ? 'text-tomato' : ''}>
+                  <strong>
                     {form.orderType === 'pickup'
                       ? 'Grátis'
-                      : deliveryFeePending
-                        ? 'A confirmar'
-                        : selectedArea
-                          ? formatCurrency(deliveryFee)
-                          : 'Selecione o bairro'}
+                      : selectedArea
+                        ? formatCurrency(deliveryFee)
+                        : 'Selecione o bairro'}
                   </strong>
                 </div>
+                {form.orderType === 'delivery' ? (
+                  <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                    <span className="text-ink/60">Embalagem</span>
+                    <strong>{formatCurrency(packagingFee)}</strong>
+                  </div>
+                ) : null}
                 <div className="mt-4 flex items-center justify-between border-t border-dashed border-ink/25 pt-4">
-                  <span className="font-extrabold">
-                    {deliveryFeePending ? 'Total parcial' : 'Total'}
-                  </span>
+                  <span className="font-extrabold">Total</span>
                   <strong className="text-2xl">{formatCurrency(total)}</strong>
                 </div>
               </div>
@@ -422,7 +432,7 @@ export function CheckoutModal({
               >
                 <MessageCircle size={19} aria-hidden="true" />
                 {submitting
-                  ? 'Registrando pedido…'
+                  ? 'Preparando pedido…'
                   : `Enviar pedido pelo WhatsApp • ${formatCurrency(total)}`}
               </button>
             </form>
