@@ -38,6 +38,10 @@ import {
 } from '../../shared/format'
 import { AddressAutocomplete } from './AddressAutocomplete'
 import type { AddressSuggestion } from '../../services/address'
+import {
+  isDeliveryAddressReady,
+  isDeliveryQuotePending,
+} from './delivery-validation'
 
 type CheckoutModalProps = {
   open: boolean
@@ -90,11 +94,11 @@ export function CheckoutModal({
       : 0
   const packagingFee = form.orderType === 'delivery' ? PACKAGING_FEE : 0
   const total = subtotal + deliveryFee + packagingFee
-  const deliveryReady =
-    form.orderType === 'pickup' ||
-    (deliveryDistanceKm !== null &&
-      Boolean(form.neighborhood) &&
-      Boolean(form.address.trim()))
+  const deliveryReady = isDeliveryAddressReady(form.orderType, form.address)
+  const deliveryQuotePending = isDeliveryQuotePending(
+    form.orderType,
+    deliveryDistanceKm,
+  )
   const canSubmit =
     items.length > 0 &&
     onlyDigits(form.phone).length >= 10 &&
@@ -107,13 +111,6 @@ export function CheckoutModal({
   }
 
   const selectAddress = (suggestion: AddressSuggestion) => {
-    if (
-      !suggestion.isWithinDeliveryRadius ||
-      suggestion.distanceKm === null
-    ) {
-      return
-    }
-
     const neighborhood = normalizeNeighborhood(suggestion.neighborhood)
     const matchedArea = deliveryAreas.find(
       (area) => normalizeNeighborhood(area.name) === neighborhood,
@@ -350,11 +347,18 @@ export function CheckoutModal({
                       Taxa de entrega
                     </span>
                     <strong className="shrink-0 text-xl text-tomato">
-                      {deliveryDistanceKm === null
-                        ? '—'
+                      {deliveryQuotePending
+                        ? 'A confirmar'
                         : formatCurrency(deliveryFee)}
                     </strong>
                   </div>
+                  {form.address.trim() && deliveryQuotePending ? (
+                    <p className="mt-2 text-sm leading-5 text-ink/50">
+                      {deliveryDistanceKm !== null
+                        ? 'Este local fica fora da área automática. Você ainda pode enviar o pedido; a loja confirma a entrega pelo WhatsApp.'
+                        : 'Não encontramos este local automaticamente. Confira seu endereço antes de enviar. A loja confirma a entrega pelo WhatsApp.'}
+                    </p>
+                  ) : null}
 
                   <label className="mt-4 block">
                     <span className="field-label">
@@ -435,9 +439,9 @@ export function CheckoutModal({
                   <strong>
                     {form.orderType === 'pickup'
                       ? 'Grátis'
-                        : deliveryDistanceKm !== null
-                          ? formatCurrency(deliveryFee)
-                          : 'Escolha o endereço'}
+                      : deliveryQuotePending
+                        ? 'A confirmar'
+                        : formatCurrency(deliveryFee)}
                   </strong>
                 </div>
                 {form.orderType === 'delivery' ? (
@@ -449,7 +453,9 @@ export function CheckoutModal({
                   </>
                 ) : null}
                 <div className="mt-4 flex items-center justify-between border-t border-dashed border-ink/25 pt-4">
-                  <span className="font-extrabold">Total</span>
+                  <span className="font-extrabold">
+                    {deliveryQuotePending ? 'Total parcial' : 'Total'}
+                  </span>
                   <strong className="text-2xl">{formatCurrency(total)}</strong>
                 </div>
               </div>

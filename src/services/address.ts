@@ -29,6 +29,7 @@ type ViaCepAddress = {
   bairro?: string
   localidade?: string
   uf?: string
+  erro?: boolean
 }
 
 type AwesomeCepAddress = {
@@ -54,6 +55,12 @@ export type AddressSuggestion = {
 
 const suggestionCache = new Map<string, AddressSuggestion[]>()
 const coordinatesCache = new Map<string, Coordinates | null>()
+const searchAreaKm = 12
+const preferredNeighborhoods = [
+  'janga',
+  'pau amarelo',
+  'nossa senhora do o',
+]
 
 const degreesToRadians = (degrees: number) => (degrees * Math.PI) / 180
 
@@ -75,17 +82,56 @@ const calculateDistanceKm = (from: Coordinates, to: Coordinates) => {
 const normalizeSearch = (value: string) =>
   value.trim().replace(/\s+/g, ' ').trim()
 
+const cepLikePattern = /^[\d-]+$/
+
+export const isValidCep = (value: string) =>
+  /^\d{5}-?\d{3}$/.test(value.trim())
+
+export const formatAddressSearchInput = (value: string) => {
+  if (!/^\d+$/.test(value)) return value
+
+  const digits = value.slice(0, 8)
+  return digits.length > 5
+    ? `${digits.slice(0, 5)}-${digits.slice(5)}`
+    : digits
+}
+
 const normalizePlaceName = (value: string) =>
   value
     .replace(/^Comdomínio\b/i, 'Condomínio')
     .replace(/\bpraia do Janga\b/i, 'Praia do Janga')
+
+const normalizeForComparison = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLocaleLowerCase('pt-BR')
+
+const sortLocalSuggestions = (suggestions: AddressSuggestion[]) =>
+  suggestions.sort((first, second) => {
+    const firstPriority = preferredNeighborhoods.indexOf(
+      normalizeForComparison(first.neighborhood),
+    )
+    const secondPriority = preferredNeighborhoods.indexOf(
+      normalizeForComparison(second.neighborhood),
+    )
+    const normalizedFirstPriority = firstPriority === -1 ? Infinity : firstPriority
+    const normalizedSecondPriority =
+      secondPriority === -1 ? Infinity : secondPriority
+
+    if (normalizedFirstPriority !== normalizedSecondPriority) {
+      return normalizedFirstPriority - normalizedSecondPriority
+    }
+
+    return (first.distanceKm ?? Infinity) - (second.distanceKm ?? Infinity)
+  })
 
 const searchKnownPlaces = async (
   query: string,
   signal?: AbortSignal,
 ): Promise<AddressSuggestion[]> => {
   const { city, state, origin, maxRadiusKm } = DELIVERY_ADDRESS_CONFIG
-  const searchAreaKm = 12
   const latitudeDelta = searchAreaKm / 111
   const longitudeDelta =
     searchAreaKm / (111 * Math.cos(degreesToRadians(origin.latitude)))
@@ -120,12 +166,15 @@ const searchKnownPlaces = async (
       !properties ||
       !name ||
       !Number.isFinite(latitude) ||
-      !Number.isFinite(longitude)
+      !Number.isFinite(longitude) ||
+      (properties.countrycode &&
+        properties.countrycode.toLocaleLowerCase('pt-BR') !== 'br')
     ) {
       continue
     }
 
     const distanceKm = calculateDistanceKm(origin, { latitude, longitude })
+    if (distanceKm > searchAreaKm) continue
     const neighborhood =
       properties.district?.trim() ||
       properties.locality?.trim() ||
@@ -147,7 +196,7 @@ const searchKnownPlaces = async (
     })
   }
 
-  return Array.from(uniqueSuggestions.values()).slice(0, 6)
+  return sortLocalSuggestions(Array.from(uniqueSuggestions.values())).slice(0, 6)
 }
 
 const getCepCoordinates = async (
@@ -181,6 +230,50 @@ const getCepCoordinates = async (
   }
 }
 
+const searchCep = async (
+  cep: string,
+  signal?: AbortSignal,
+): Promise<AddressSuggestion[]> => {
+  const { city, state, origin, maxRadiusKm } = DELIVERY_ADDRESS_CONFIG
+  const normalizedCep = cep.replace(/\D/g, '')
+  const response = await fetch(
+    `https://viacep.com.br/ws/${normalizedCep}/json/`,
+    { signal },
+  )
+  if (!response.ok) return []
+
+  const address = (await response.json()) as ViaCepAddress
+  if (address.erro) return []
+
+  const formattedCep = address.cep?.trim()
+  const addressCity = address.localidade?.trim()
+  const addressState = address.uf?.trim()
+  if (!formattedCep || !addressCity || !addressState) return []
+
+  const coordinates = await getCepCoordinates(formattedCep, signal)
+  const distanceKm = coordinates
+    ? calculateDistanceKm(origin, coordinates)
+    : null
+  const neighborhood = address.bairro?.trim() || ''
+
+  return [
+    {
+      id: `cep-${normalizedCep}`,
+      cep: formattedCep,
+      street:
+        address.logradouro?.trim() ||
+        neighborhood ||
+        `${addressCity}–${addressState}`,
+      neighborhood,
+      city: addressCity || city,
+      state: addressState || state,
+      distanceKm,
+      isWithinDeliveryRadius:
+        distanceKm !== null && distanceKm <= maxRadiusKm,
+    },
+  ]
+}
+
 const searchOfficialStreets = async (
   query: string,
   signal?: AbortSignal,
@@ -196,7 +289,13 @@ const searchOfficialStreets = async (
   const data = (await response.json()) as ViaCepAddress[]
   if (!Array.isArray(data)) return []
 
-  const uniqueSuggestions = new Map<string, AddressSuggestion>()
+  const uniqueAddresses = new Map<
+    string,
+    Omit<
+      AddressSuggestion,
+      'distanceKm' | 'isWithinDeliveryRadius'
+    >
+  >()
   for (const address of data) {
     const street = address.logradouro?.trim()
     const neighborhood = address.bairro?.trim()
@@ -204,27 +303,33 @@ const searchOfficialStreets = async (
     if (!street || !neighborhood || !cep) continue
 
     const id = `${cep}-${street}-${neighborhood}`
-    if (uniqueSuggestions.has(id)) continue
-    const coordinates = await getCepCoordinates(cep, signal)
-    const distanceKm = coordinates
-      ? calculateDistanceKm(origin, coordinates)
-      : null
-
-    uniqueSuggestions.set(id, {
+    if (uniqueAddresses.has(id)) continue
+    uniqueAddresses.set(id, {
       id,
       cep,
       street,
       neighborhood,
       city: address.localidade?.trim() || city,
       state: address.uf?.trim() || state,
-      distanceKm,
-      isWithinDeliveryRadius:
-        distanceKm !== null && distanceKm <= maxRadiusKm,
     })
-    if (uniqueSuggestions.size === 6) break
+    if (uniqueAddresses.size === 6) break
   }
 
-  return Array.from(uniqueSuggestions.values())
+  return Promise.all(
+    Array.from(uniqueAddresses.values()).map(async (address) => {
+      const coordinates = await getCepCoordinates(address.cep, signal)
+      const distanceKm = coordinates
+        ? calculateDistanceKm(origin, coordinates)
+        : null
+
+      return {
+        ...address,
+        distanceKm,
+        isWithinDeliveryRadius:
+          distanceKm !== null && distanceKm <= maxRadiusKm,
+      }
+    }),
+  )
 }
 
 export const searchDeliveryAddresses = async (
@@ -234,21 +339,40 @@ export const searchDeliveryAddresses = async (
   const query = normalizeSearch(value)
   if (query.length < 3) return []
 
+  if (cepLikePattern.test(query)) {
+    if (!isValidCep(query)) return []
+    return searchCep(query, signal)
+  }
+
   const cacheKey = query.toLocaleLowerCase('pt-BR')
   const cached = suggestionCache.get(cacheKey)
   if (cached) return cached
 
-  try {
-    const knownPlaces = await searchKnownPlaces(query, signal)
-    if (knownPlaces.length) {
-      suggestionCache.set(cacheKey, knownPlaces)
-      return knownPlaces
-    }
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') throw error
+  const [knownPlacesResult, officialStreetsResult] = await Promise.allSettled([
+    searchKnownPlaces(query, signal),
+    searchOfficialStreets(query, signal),
+  ])
+  if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
+
+  const candidates = [
+    ...(knownPlacesResult.status === 'fulfilled' ? knownPlacesResult.value : []),
+    ...(officialStreetsResult.status === 'fulfilled'
+      ? officialStreetsResult.value
+      : []),
+  ]
+  const uniqueSuggestions = new Map<string, AddressSuggestion>()
+  for (const suggestion of candidates) {
+    const key = [
+      suggestion.cep,
+      normalizeForComparison(suggestion.street),
+      normalizeForComparison(suggestion.neighborhood),
+    ].join('|')
+    if (!uniqueSuggestions.has(key)) uniqueSuggestions.set(key, suggestion)
   }
 
-  const officialStreets = await searchOfficialStreets(query, signal)
-  suggestionCache.set(cacheKey, officialStreets)
-  return officialStreets
+  const suggestions = sortLocalSuggestions(
+    Array.from(uniqueSuggestions.values()),
+  ).slice(0, 6)
+  suggestionCache.set(cacheKey, suggestions)
+  return suggestions
 }

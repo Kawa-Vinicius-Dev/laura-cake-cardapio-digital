@@ -1,6 +1,8 @@
 import { useEffect, useId, useState, type KeyboardEvent } from 'react'
 import { LoaderCircle, MapPin, Search } from 'lucide-react'
 import {
+  formatAddressSearchInput,
+  isValidCep,
   searchDeliveryAddresses,
   type AddressSuggestion,
 } from '../../services/address'
@@ -13,6 +15,8 @@ type AddressAutocompleteProps = {
   onClearSelection: () => void
   onSelect: (suggestion: AddressSuggestion) => void
 }
+
+type SearchStatus = 'idle' | 'results' | 'not-found' | 'failed'
 
 const normalize = (value: string) =>
   value
@@ -34,7 +38,7 @@ export function AddressAutocomplete({
   const [selectedStreet, setSelectedStreet] = useState('')
   const [activeIndex, setActiveIndex] = useState(-1)
   const [loading, setLoading] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [searchStatus, setSearchStatus] = useState<SearchStatus>('idle')
   const hasSelectedStreet =
     Boolean(selectedStreet) &&
     normalize(value).startsWith(normalize(selectedStreet))
@@ -43,23 +47,24 @@ export function AddressAutocomplete({
     if (!active || !focused || hasSelectedStreet || value.trim().length < 3) {
       setSuggestions([])
       setLoading(false)
-      setFailed(false)
+      setSearchStatus('idle')
       return
     }
 
     const controller = new AbortController()
     const timeout = window.setTimeout(async () => {
       setLoading(true)
-      setFailed(false)
+      setSearchStatus('idle')
 
       try {
         const results = await searchDeliveryAddresses(value, controller.signal)
         setSuggestions(results)
         setActiveIndex(-1)
+        setSearchStatus(results.length ? 'results' : 'not-found')
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') return
         setSuggestions([])
-        setFailed(true)
+        setSearchStatus('failed')
       } finally {
         if (!controller.signal.aborted) setLoading(false)
       }
@@ -72,7 +77,6 @@ export function AddressAutocomplete({
   }, [active, focused, hasSelectedStreet, value])
 
   const selectSuggestion = (suggestion: AddressSuggestion) => {
-    if (!suggestion.isWithinDeliveryRadius) return
     setSelectedStreet(suggestion.street)
     setSuggestions([])
     setActiveIndex(-1)
@@ -80,16 +84,17 @@ export function AddressAutocomplete({
   }
 
   const handleChange = (nextValue: string) => {
+    const formattedValue = formatAddressSearchInput(nextValue)
     const keepsSelectedStreet =
       Boolean(selectedStreet) &&
-      normalize(nextValue).startsWith(normalize(selectedStreet))
+      normalize(formattedValue).startsWith(normalize(selectedStreet))
 
     if (!keepsSelectedStreet && selectedStreet) {
       setSelectedStreet('')
       onClearSelection()
     }
 
-    onChange(nextValue)
+    onChange(formattedValue)
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -106,7 +111,7 @@ export function AddressAutocomplete({
     } else if (event.key === 'Enter' && activeIndex >= 0) {
       event.preventDefault()
       const suggestion = suggestions[activeIndex]
-      if (suggestion.isWithinDeliveryRadius) selectSuggestion(suggestion)
+      selectSuggestion(suggestion)
     } else if (event.key === 'Escape') {
       setSuggestions([])
       setActiveIndex(-1)
@@ -114,11 +119,22 @@ export function AddressAutocomplete({
   }
 
   const listVisible = active && focused && suggestions.length > 0
+  const trimmedValue = value.trim()
+  const cepLike = /^[\d-]+$/.test(trimmedValue)
+  const helperText = hasSelectedStreet
+    ? 'Local selecionado. Complete abaixo com número, bloco ou referência.'
+    : searchStatus === 'not-found' && isValidCep(trimmedValue)
+      ? 'Não encontramos esse CEP. Confira os números ou digite seu endereço completo.'
+      : searchStatus === 'not-found' && cepLike
+        ? 'Digite um CEP com 8 números.'
+        : searchStatus === 'not-found' || searchStatus === 'failed'
+          ? 'Não encontramos este local automaticamente. Confira seu endereço antes de enviar.'
+          : 'Digite um CEP ou pelo menos 3 letras para buscar ruas, condomínios e locais próximos.'
 
   return (
     <div className="mt-5">
       <label htmlFor={`${listId}-input`} className="field-label">
-        Endereço, condomínio ou ponto conhecido
+        CEP, endereço, condomínio ou ponto conhecido
       </label>
       <div className="relative">
         <MapPin
@@ -137,7 +153,7 @@ export function AddressAutocomplete({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           onKeyDown={handleKeyDown}
-          placeholder="Ex.: Rua João Alfredo ou Condomínio Parque Janga"
+          placeholder="Ex.: 53437-320 ou Rua João Alfredo"
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={listVisible}
@@ -166,13 +182,12 @@ export function AddressAutocomplete({
                 id={`${listId}-option-${index}`}
                 type="button"
                 role="option"
-                disabled={!suggestion.isWithinDeliveryRadius}
                 aria-selected={activeIndex === index}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => selectSuggestion(suggestion)}
                 className={`flex min-h-20 w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition ${
                   !suggestion.isWithinDeliveryRadius
-                    ? 'cursor-not-allowed bg-ink/[0.025] opacity-55'
+                    ? 'bg-tomato/[0.04] hover:bg-tomato/[0.08]'
                     : activeIndex === index
                       ? 'bg-cobalt/8'
                       : 'hover:bg-ink/5'
@@ -204,7 +219,7 @@ export function AddressAutocomplete({
                     }`}
                   >
                     {suggestion.distanceKm === null
-                      ? 'Não foi possível calcular a distância'
+                      ? 'Distância a confirmar pela loja'
                       : suggestion.isWithinDeliveryRadius
                         ? 'Disponível para entrega'
                         : `Fora do raio de ${DELIVERY_ADDRESS_CONFIG.maxRadiusKm} km`}
@@ -215,12 +230,8 @@ export function AddressAutocomplete({
           </div>
         ) : null}
       </div>
-      <p className={`mt-2 text-sm leading-5 ${failed ? 'text-tomato' : 'text-ink/50'}`}>
-        {failed
-          ? 'Não foi possível calcular a distância. Tente novamente ou escolha retirada.'
-          : hasSelectedStreet
-            ? 'Local selecionado. Complete abaixo com número, bloco ou referência.'
-            : `Digite pelo menos 3 letras para buscar ruas, condomínios e locais próximos.`}
+      <p className="mt-2 text-sm leading-5 text-ink/50" aria-live="polite">
+        {helperText}
       </p>
       <p className="mt-1 text-xs text-ink/40">
         Busca de locais por{' '}

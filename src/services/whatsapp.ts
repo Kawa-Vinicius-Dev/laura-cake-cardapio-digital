@@ -1,4 +1,4 @@
-import { STORE_CONFIG } from '../data/menu'
+import { DELIVERY_ADDRESS_CONFIG, STORE_CONFIG } from '../data/menu'
 import type { OrderPayload } from '../domain/order'
 import {
   getCartItemBasePrice,
@@ -9,6 +9,10 @@ import {
 import { formatCurrency, formatOrderNumber } from '../shared/format'
 
 export const buildWhatsAppMessage = (order: OrderPayload, orderNumber: number) => {
+  const deliveryQuotePending =
+    order.orderType === 'delivery' &&
+    (order.deliveryDistanceKm === null ||
+      order.deliveryDistanceKm > DELIVERY_ADDRESS_CONFIG.maxRadiusKm)
   const items = order.items
     .map((item) => {
       const line = `${item.quantity}x ${item.product.name} — ${formatCurrency(
@@ -36,15 +40,19 @@ export const buildWhatsAppMessage = (order: OrderPayload, orderNumber: number) =
     `Subtotal: ${formatCurrency(order.subtotal)}`,
     ...(order.orderType === 'delivery'
       ? [
-          `Taxa de entrega: ${formatCurrency(order.deliveryFee)}`,
+          deliveryQuotePending
+            ? 'Taxa de entrega: a confirmar pela loja'
+            : `Taxa de entrega: ${formatCurrency(order.deliveryFee)}`,
           `Embalagem: ${formatCurrency(order.packagingFee)}`,
         ]
       : []),
-    `Total: ${formatCurrency(order.total)}`,
+    `${deliveryQuotePending ? 'Total parcial' : 'Total'}: ${formatCurrency(order.total)}`,
     `Tipo: ${order.orderType === 'delivery' ? 'Entrega' : 'Retirada'}`,
     ...(order.orderType === 'delivery'
       ? [
-          `Bairro: ${getNeighborhoodName(order.neighborhood)}`,
+          ...(order.neighborhood
+            ? [`Bairro: ${getNeighborhoodName(order.neighborhood)}`]
+            : []),
           `Endereço: ${order.address}`,
           ...(order.addressReference
             ? [`Complemento / referência: ${order.addressReference}`]
