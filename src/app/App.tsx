@@ -33,14 +33,14 @@ import { formatCurrency } from '../shared/format'
 type CategorySectionProps = {
   category: Category & { products: Product[] }
   currentTime: Date
-  onActivate: (categoryId: string) => void
+  storeClosed: boolean
   onAdd: (product: Product) => void
 }
 
 function CategorySection({
   category,
   currentTime,
-  onActivate,
+  storeClosed,
   onAdd,
 }: CategorySectionProps) {
   const orderedProducts = useMemo(
@@ -62,33 +62,35 @@ function CategorySection({
       id={category.id}
       data-category-id={category.id}
       className="scroll-mt-24"
-      onMouseEnter={() => onActivate(category.id)}
     >
       <div className="mb-6 flex flex-wrap items-center gap-3 sm:gap-4">
         <h2 className="font-display text-2xl uppercase sm:text-3xl">
           {category.name}
         </h2>
         <span className="hidden h-px min-w-8 flex-1 bg-ink/15 sm:block" />
-        <span
-          className={`rounded-full px-3 py-1.5 text-[0.65rem] font-extrabold uppercase tracking-[0.06em] ${
-            availableCount > 0
-              ? 'bg-mint/45 text-ink/65'
-              : 'bg-tomato/10 text-tomato'
-          }`}
-        >
-          {categoryStatus}
-        </span>
+        {storeClosed ? null : (
+          <span
+            className={`rounded-full px-3 py-1.5 text-[0.65rem] font-extrabold uppercase tracking-[0.06em] ${
+              availableCount > 0
+                ? 'bg-mint/45 text-ink/65'
+                : 'bg-tomato/10 text-tomato'
+            }`}
+          >
+            {categoryStatus}
+          </span>
+        )}
         <span className="text-xs font-extrabold text-ink/40">
           {String(category.products.length).padStart(2, '0')}
         </span>
       </div>
-      <div className="grid grid-cols-1 gap-4 min-[540px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 min-[540px]:grid-cols-2 min-[540px]:gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {orderedProducts.map(({ product, availability: productAvailability }) => (
           <ProductCard
             key={product.id}
             product={product}
             available={productAvailability.available}
             availabilityMessage={productAvailability.message}
+            storeClosed={storeClosed}
             onAdd={onAdd}
           />
         ))}
@@ -105,6 +107,13 @@ const groupedProducts = categories.map((category) => ({
     return product ? [product] : []
   }),
 }))
+
+const categoryIdByProductId = new Map(
+  categories.flatMap((category) =>
+    category.productIds.map((productId) => [productId, category.id] as const),
+  ),
+)
+const heroHighlights = products.filter((product) => product.badge).slice(0, 5)
 
 const getPastelItemId = (
   product: Product,
@@ -160,6 +169,33 @@ function App() {
     const timeout = window.setTimeout(() => setToast(''), 2200)
     return () => window.clearTimeout(timeout)
   }, [toast])
+
+  // Destaca a categoria que está na tela e mantém o botão dela visível na barra.
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.find((entry) => entry.isIntersecting)
+        if (visible) setActiveCategory(visible.target.id)
+      },
+      { rootMargin: '-30% 0px -65% 0px' },
+    )
+    categories.forEach(({ id }) => {
+      const section = document.getElementById(id)
+      if (section) observer.observe(section)
+    })
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const pill = document.querySelector<HTMLElement>(`[data-pill="${activeCategory}"]`)
+    const bar = pill?.parentElement
+    if (!pill || !bar) return
+    // Só rola a barra na horizontal; scrollIntoView puxaria a página junto.
+    bar.scrollTo({
+      left: pill.offsetLeft - (bar.clientWidth - pill.offsetWidth) / 2,
+      behavior: 'smooth',
+    })
+  }, [activeCategory])
 
   useEffect(() => {
     const interval = window.setInterval(() => setCurrentTime(new Date()), 30_000)
@@ -298,7 +334,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-paper text-ink">
+    <div className="min-h-screen overflow-x-clip bg-paper text-ink">
       <header className="absolute inset-x-0 top-0 z-20">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
           <a href="#" className="flex items-center gap-3 text-white" aria-label="Início">
@@ -377,12 +413,26 @@ function App() {
               <div className="absolute -left-2 top-7 z-10 rotate-[-8deg] bg-tomato px-4 py-3 font-display text-sm uppercase shadow-[5px_5px_0_#101116] sm:left-0 sm:text-base">
                 Feito na hora!
               </div>
-              <div className="hero-image-wrap">
-                <img
-                  src={products[0].image}
-                  alt="Coxinha preparada pela Laura Cake e Sabores da Casa"
-                  className="h-full w-full object-cover"
-                />
+              <div className="rounded-3xl bg-paper p-6 pt-14 pb-20 text-ink shadow-[8px_8px_0_#101116] sm:p-8 sm:pt-16 sm:pb-24">
+                <p className="eyebrow text-tomato">Destaques da casa</p>
+                <ul className="mt-4 divide-y divide-ink/10">
+                  {heroHighlights.map((product) => (
+                    <li key={product.id}>
+                      <a
+                        href={`#${categoryIdByProductId.get(product.id) ?? 'cardapio'}`}
+                        className="flex items-baseline justify-between gap-4 py-3"
+                      >
+                        <span className="font-display text-lg uppercase leading-tight">
+                          {product.name}
+                        </span>
+                        <span className="shrink-0 text-sm font-extrabold text-ink/70">
+                          {product.options?.length ? 'a partir de ' : ''}
+                          {formatCurrency(product.price)}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </div>
               <div className="absolute -bottom-3 right-2 z-10 rounded-2xl bg-white p-4 text-ink shadow-xl sm:right-0 sm:p-5">
                 <div className="flex items-center gap-3">
@@ -451,6 +501,7 @@ function App() {
                 <a
                   key={category.id}
                   href={`#${category.id}`}
+                  data-pill={category.id}
                   onClick={() => setActiveCategory(category.id)}
                   className={`category-pill ${
                     activeCategory === category.id ? 'category-pill-active' : ''
@@ -461,13 +512,28 @@ function App() {
               ))}
             </nav>
 
+            {storeAvailability.available ? null : (
+              <div
+                className="mt-6 flex items-start gap-3 rounded-2xl border border-tomato/25 bg-tomato/10 p-4 text-sm font-bold text-ink"
+                role="status"
+              >
+                <Clock3 size={20} className="mt-0.5 shrink-0 text-tomato" aria-hidden="true" />
+                <p>
+                  {storeAvailability.message}.{' '}
+                  <span className="font-medium text-ink/70">
+                    Dá uma olhada no cardápio e já escolhe o seu!
+                  </span>
+                </p>
+              </div>
+            )}
+
             <div className="mt-12 space-y-16 sm:mt-16">
               {groupedProducts.map((category) => (
                 <CategorySection
                   key={category.id}
                   category={category}
                   currentTime={currentTime}
-                  onActivate={setActiveCategory}
+                  storeClosed={!storeAvailability.available}
                   onAdd={addProduct}
                 />
               ))}

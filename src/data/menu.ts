@@ -83,27 +83,6 @@ export const PASTEL_OPTIONS = {
   sauces: ['Mostarda', 'Ketchup', 'Maionese caseira', 'Mostarda e mel'],
 } as const
 
-const images = {
-  coxinha: '/products/category-coxinhas.png',
-  tempura: '/products/product-tempura-camarao.png',
-  hotDog: '/products/product-hot-dog.png',
-  hamburguer: '/products/product-hamburguer.png',
-  xBurger: '/products/product-x-burger.png',
-  pastel: '/products/category-pastel.png',
-  cuscuz: '/products/category-cuscuz.png',
-  tapioca: '/products/category-tapioca-salgada.png',
-  tapiocaDoce: '/products/category-tapioca-doce.png',
-  batata: '/products/category-batata.png',
-  boloPote: '/products/category-bolo-pote.png',
-  miniBolo: '/products/mini-bolo-red-velvet-kinder.png',
-  prato: '/products/category-pratos.png',
-  yakisoba: '/products/category-yakisoba.png',
-  bolo: '/products/category-fatias-bolo.png',
-  bebida: '/products/category-bebidas.png',
-  sopa: '/products/category-sopas.png',
-  torta: '/products/category-torta.png',
-} as const
-
 const option = (
   id: string,
   name: string,
@@ -173,7 +152,6 @@ export const products: Product[] = [
     description:
       'Massa crocante com opções de recheios preparados e bem temperados.',
     price: 6.9,
-    image: images.coxinha,
     badge: '6 recheios',
     optionLabel: 'Escolha o recheio',
     options: [
@@ -222,7 +200,6 @@ export const products: Product[] = [
     description:
       'Deliciosa porção de camarões empanados, dourados e crocantes, acompanhados de cream cheese.',
     price: 19.8,
-    image: images.tempura,
     badge: 'Destaque',
   },
   {
@@ -232,7 +209,6 @@ export const products: Product[] = [
     description:
       'Delicioso hot dog preparado na hora com pão, salsicha, molho especial, milho, ervilha, tomate, cebola, batata palha crocante, ketchup e mostarda.',
     price: 9.9,
-    image: images.hotDog,
     addons: [homemadeMayoExtra],
   },
   {
@@ -242,7 +218,6 @@ export const products: Product[] = [
     description:
       'Hambúrguer preparado na hora com pão, deliciosa carne caseira, cebola caramelizada, salada e molho especial da casa.',
     price: 13.9,
-    image: images.hamburguer,
     addons: [homemadeMayoExtra],
   },
   {
@@ -252,28 +227,25 @@ export const products: Product[] = [
     description:
       'Delicioso X-Burger preparado na hora com pão, carne caseira, queijo muçarela, cebola caramelizada, salada e molho especial da casa.',
     price: 16.9,
-    image: images.xBurger,
     addons: [homemadeMayoExtra],
   },
   {
     id: 'pastel-3-sabores',
     scheduleId: 'night',
-    name: 'Pastel Montado — até 3 sabores',
+    name: 'Pastel Montado — 3 sabores',
     description:
       'Pastel crocante preparado com exatamente 3 sabores, 4 acompanhamentos e 2 molhos escolhidos pelo cliente.',
     price: 9.9,
-    image: images.pastel,
     badge: 'Monte do seu jeito',
     pastelFlavorLimit: 3,
   },
   {
     id: 'pastel-6-sabores',
     scheduleId: 'night',
-    name: 'Pastel Montado — até 6 sabores',
+    name: 'Pastel Montado — 6 sabores',
     description:
       'Pastel crocante preparado com exatamente 6 sabores, 4 acompanhamentos e 2 molhos escolhidos pelo cliente.',
     price: 17.9,
-    image: images.pastel,
     badge: 'Monte do seu jeito',
     pastelFlavorLimit: 6,
   },
@@ -284,7 +256,6 @@ export const products: Product[] = [
     description:
       'Cuscuz quentinho e recheado, preparado com carne e queijo coalho conforme a opção escolhida.',
     price: 16.4,
-    image: images.cuscuz,
     optionLabel: 'Escolha o recheio',
     options: [
       option(
@@ -308,7 +279,6 @@ export const products: Product[] = [
     description:
       'Tapioca preparada na hora, leve e saborosa, com o recheio escolhido pelo cliente.',
     price: 7.9,
-    image: images.tapioca,
     optionLabel: 'Escolha o sabor',
     options: [
       option(
@@ -344,7 +314,6 @@ export const products: Product[] = [
     description:
       'Tapioca preparada na hora com uma deliciosa opção de recheio doce escolhida pelo cliente.',
     price: 11.9,
-    image: images.tapiocaDoce,
     optionLabel: 'Escolha o sabor',
     options: [
       option(
@@ -374,7 +343,6 @@ export const products: Product[] = [
     description:
       'Porção de batatas fritas douradas e crocantes, disponível nos tamanhos pequeno, médio e grande.',
     price: 7.9,
-    image: images.batata,
     optionLabel: 'Escolha o tamanho',
     options: [
       option(
@@ -404,7 +372,6 @@ export const products: Product[] = [
     description:
       'Camadas de bolo macio com recheio cremoso no sabor escolhido.',
     price: 9.9,
-    image: images.boloPote,
     optionLabel: 'Escolha o sabor',
     options: [
       option(
@@ -452,7 +419,6 @@ export const products: Product[] = [
     description:
       'Mini bolo macio com uma generosa cobertura cremosa no sabor escolhido.',
     price: 19.9,
-    image: images.miniBolo,
     badge: 'Destaque',
     optionLabel: 'Escolha o sabor',
     options: [
@@ -483,7 +449,6 @@ export const products: Product[] = [
     description:
       'Prato saboroso preparado para o almoço, com a receita escolhida pelo cliente.',
     price: 19.9,
-    image: images.prato,
     optionLabel: 'Escolha o prato',
     addons: [beansExtra],
     options: [
@@ -526,7 +491,6 @@ export const products: Product[] = [
     description:
       'Macarrão oriental preparado com legumes, molho especial e a opção de proteína escolhida pelo cliente.',
     price: 21.9,
-    image: images.yakisoba,
     badge: '5 opções',
     optionLabel: 'Escolha o tipo',
     options: [
@@ -569,7 +533,6 @@ export const products: Product[] = [
     description:
       'Fatia generosa de bolo macio no sabor escolhido pelo cliente.',
     price: 11.9,
-    image: images.bolo,
     optionLabel: 'Escolha o sabor',
     options: [
       option(
@@ -593,7 +556,6 @@ export const products: Product[] = [
     description:
       'Coca-Cola gelada na versão tradicional ou zero e no tamanho escolhido.',
     price: 6.9,
-    image: images.bebida,
     optionLabel: 'Escolha a versão',
     options: [
       option(
@@ -629,7 +591,6 @@ export const products: Product[] = [
     description:
       'Refrigerante gelado escolhido pelo cliente, com opções Kuat, Fanta ou Antarctica de 1 litro.',
     price: 6.9,
-    image: images.bebida,
     optionLabel: 'Escolha a bebida',
     options: [
       option(
@@ -649,7 +610,6 @@ export const products: Product[] = [
     description:
       'Água mineral gelada, com ou sem gás, conforme a versão escolhida.',
     price: 3.9,
-    image: images.bebida,
     optionLabel: 'Escolha a versão',
     options: [
       option(
@@ -673,7 +633,6 @@ export const products: Product[] = [
     description:
       'Sopa quentinha e bem temperada, preparada no sabor escolhido pelo cliente.',
     price: 9.9,
-    image: images.sopa,
     optionLabel: 'Escolha o sabor',
     options: [
       option(
@@ -715,6 +674,5 @@ export const products: Product[] = [
     description:
       'Fatia de torta salgada com massa macia e delicioso recheio de frango.',
     price: 12.9,
-    image: images.torta,
   },
 ]

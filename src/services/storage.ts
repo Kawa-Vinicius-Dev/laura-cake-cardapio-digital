@@ -1,3 +1,4 @@
+import { products } from '../data/menu'
 import type {
   CartItem,
   CustomerProfile,
@@ -41,8 +42,44 @@ export const saveCustomer = (customer: CustomerProfile) => {
   localStorage.setItem(PROFILE_KEY, JSON.stringify(customer))
 }
 
-export const loadCart = (): CartItem[] =>
-  safeParse<CartItem[]>(localStorage.getItem(CART_KEY), [])
+const productById = new Map(products.map((product) => [product.id, product]))
+
+// O carrinho salvo guarda cópias antigas do produto. Troca por dados do cardápio
+// atual (preço, nome) e descarta o que não existe mais.
+export const refreshCartItems = (items: CartItem[]): CartItem[] =>
+  items.flatMap((item) => {
+    const product = productById.get(item.product?.id)
+    if (!product || !(item.quantity >= 1)) return []
+
+    let selectedOption = undefined
+    if (item.selectedOption) {
+      selectedOption = product.options?.find(
+        (option) => option.id === item.selectedOption?.id,
+      )
+      if (!selectedOption) return []
+    }
+
+    const selectedAddons = []
+    for (const selection of item.selectedAddons ?? []) {
+      const addon = product.addons?.find((current) => current.id === selection.addon.id)
+      if (!addon) return []
+      selectedAddons.push({ addon, quantity: selection.quantity })
+    }
+
+    return [
+      {
+        ...item,
+        product,
+        selectedOption,
+        selectedAddons: item.selectedAddons ? selectedAddons : undefined,
+      },
+    ]
+  })
+
+export const loadCart = (): CartItem[] => {
+  const saved = safeParse<unknown>(localStorage.getItem(CART_KEY), [])
+  return Array.isArray(saved) ? refreshCartItems(saved as CartItem[]) : []
+}
 
 export const saveCart = (cart: CartItem[]) => {
   localStorage.setItem(CART_KEY, JSON.stringify(cart))
