@@ -242,6 +242,27 @@
     display: none;
   }
 
+  .product-card {
+    border-top: 4px solid var(--color-sun);
+  }
+
+  .product-card:has(img) {
+    border-top-width: 1px;
+    border-top-color: rgb(17 18 22 / 0.12);
+  }
+
+  .product-badge-inline {
+    align-self: flex-start;
+    margin-bottom: 0.6rem;
+    border-radius: 999px;
+    background: var(--color-sun);
+    padding: 0.25rem 0.6rem;
+    color: var(--color-ink);
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
   .product-badge {
     position: absolute;
     left: 0.75rem;
@@ -593,6 +614,15 @@
     height: 3.25rem;
     padding-inline: 1rem;
     font-size: 0.86rem;
+  }
+
+  @media (max-width: 539px) {
+    .product-card .add-button {
+      min-width: 0;
+      width: 2.9rem;
+      height: 2.9rem;
+      padding: 0;
+    }
   }
 
   .icon-button {

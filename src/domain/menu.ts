@@ -25,7 +25,8 @@ export type Product = {
   name: string
   description: string
   price: number
-  image: string
+  // Foto real do produto, ex.: '/products/coxinha.webp'. Sem foto, o card fica só com texto.
+  image?: string
   badge?: string
   addons?: ProductAddon[]
   pastelFlavorLimit?: 3 | 6
