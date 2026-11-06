@@ -149,6 +149,7 @@ export const products: Product[] = [
     id: 'coxinha',
     scheduleId: 'day',
     name: 'Coxinha',
+    image: '/products/coxinha.webp',
     description:
       'Massa crocante com opções de recheios preparados e bem temperados.',
     price: 6.9,
@@ -197,6 +198,7 @@ export const products: Product[] = [
     id: 'camarao-empanado',
     scheduleId: 'day',
     name: 'Tempurá de Camarão',
+    image: '/products/camarao-empanado.webp',
     description:
       'Deliciosa porção de camarões empanados, dourados e crocantes, acompanhados de cream cheese.',
     price: 19.8,
@@ -206,6 +208,7 @@ export const products: Product[] = [
     id: 'hot-dog',
     scheduleId: 'night',
     name: 'Hot Dog',
+    image: '/products/hot-dog.webp',
     description:
       'Delicioso hot dog preparado na hora com pão, salsicha, molho especial, milho, ervilha, tomate, cebola, batata palha crocante, ketchup e mostarda.',
     price: 9.9,
@@ -215,6 +218,7 @@ export const products: Product[] = [
     id: 'hamburguer',
     scheduleId: 'night',
     name: 'Hambúrguer',
+    image: '/products/hamburguer.webp',
     description:
       'Hambúrguer preparado na hora com pão, deliciosa carne caseira, cebola caramelizada, salada e molho especial da casa.',
     price: 13.9,
@@ -224,6 +228,7 @@ export const products: Product[] = [
     id: 'x-burger',
     scheduleId: 'night',
     name: 'X-Burger',
+    image: '/products/x-burger.webp',
     description:
       'Delicioso X-Burger preparado na hora com pão, carne caseira, queijo muçarela, cebola caramelizada, salada e molho especial da casa.',
     price: 16.9,
@@ -233,6 +238,7 @@ export const products: Product[] = [
     id: 'pastel-3-sabores',
     scheduleId: 'night',
     name: 'Pastel Montado — 3 sabores',
+    image: '/products/pastel.webp',
     description:
       'Pastel crocante preparado com exatamente 3 sabores, 4 acompanhamentos e 2 molhos escolhidos pelo cliente.',
     price: 9.9,
@@ -243,6 +249,7 @@ export const products: Product[] = [
     id: 'pastel-6-sabores',
     scheduleId: 'night',
     name: 'Pastel Montado — 6 sabores',
+    image: '/products/pastel.webp',
     description:
       'Pastel crocante preparado com exatamente 6 sabores, 4 acompanhamentos e 2 molhos escolhidos pelo cliente.',
     price: 17.9,
@@ -276,6 +283,7 @@ export const products: Product[] = [
     id: 'tapioca-salgada',
     scheduleId: 'night',
     name: 'Tapioca Salgada',
+    image: '/products/tapioca-salgada.webp',
     description:
       'Tapioca preparada na hora, leve e saborosa, com o recheio escolhido pelo cliente.',
     price: 7.9,
@@ -311,6 +319,7 @@ export const products: Product[] = [
     id: 'tapioca-doce',
     scheduleId: 'night',
     name: 'Tapioca Doce',
+    image: '/products/tapioca-doce.webp',
     description:
       'Tapioca preparada na hora com uma deliciosa opção de recheio doce escolhida pelo cliente.',
     price: 11.9,
@@ -340,6 +349,7 @@ export const products: Product[] = [
     id: 'batata-frita',
     scheduleId: 'day',
     name: 'Batata Frita',
+    image: '/products/batata-frita.webp',
     description:
       'Porção de batatas fritas douradas e crocantes, disponível nos tamanhos pequeno, médio e grande.',
     price: 7.9,
@@ -369,6 +379,7 @@ export const products: Product[] = [
     id: 'bolo-no-pote',
     scheduleId: 'day',
     name: 'Bolo no Pote',
+    image: '/products/bolo-no-pote.webp',
     description:
       'Camadas de bolo macio com recheio cremoso no sabor escolhido.',
     price: 9.9,
@@ -416,6 +427,7 @@ export const products: Product[] = [
     id: 'mini-bolo-vulcao',
     scheduleId: 'day',
     name: 'Mini Bolo Vulcão',
+    image: '/products/mini-bolo-vulcao.webp',
     description:
       'Mini bolo macio com uma generosa cobertura cremosa no sabor escolhido.',
     price: 19.9,
@@ -446,6 +458,7 @@ export const products: Product[] = [
     id: 'pratos-principais',
     scheduleId: 'day',
     name: 'Pratos Principais',
+    image: '/products/pratos-principais.webp',
     description:
       'Prato saboroso preparado para o almoço, com a receita escolhida pelo cliente.',
     price: 19.9,
@@ -488,6 +501,7 @@ export const products: Product[] = [
     id: 'yakisoba',
     scheduleId: 'day',
     name: 'Yakisoba',
+    image: '/products/yakisoba.webp',
     description:
       'Macarrão oriental preparado com legumes, molho especial e a opção de proteína escolhida pelo cliente.',
     price: 21.9,
@@ -530,6 +544,7 @@ export const products: Product[] = [
     id: 'fatia-de-bolo',
     scheduleId: 'day',
     name: 'Fatias de Bolo',
+    image: '/products/fatia-de-bolo.webp',
     description:
       'Fatia generosa de bolo macio no sabor escolhido pelo cliente.',
     price: 11.9,
@@ -553,6 +568,7 @@ export const products: Product[] = [
     id: 'coca-cola',
     scheduleId: 'day',
     name: 'Coca-Cola',
+    image: '/products/coca-cola.webp',
     description:
       'Coca-Cola gelada na versão tradicional ou zero e no tamanho escolhido.',
     price: 6.9,
@@ -588,6 +604,7 @@ export const products: Product[] = [
     id: 'refrigerantes',
     scheduleId: 'day',
     name: 'Outros Refrigerantes',
+    image: '/products/refrigerantes.webp',
     description:
       'Refrigerante gelado escolhido pelo cliente, com opções Kuat, Fanta ou Antarctica de 1 litro.',
     price: 6.9,
@@ -607,6 +624,7 @@ export const products: Product[] = [
     id: 'agua',
     scheduleId: 'day',
     name: 'Água',
+    image: '/products/agua.webp',
     description:
       'Água mineral gelada, com ou sem gás, conforme a versão escolhida.',
     price: 3.9,
@@ -630,6 +648,7 @@ export const products: Product[] = [
     id: 'sopa',
     scheduleId: 'soups',
     name: 'Sopas',
+    image: '/products/sopa.webp',
     description:
       'Sopa quentinha e bem temperada, preparada no sabor escolhido pelo cliente.',
     price: 9.9,
@@ -671,6 +690,7 @@ export const products: Product[] = [
     id: 'torta-frango',
     scheduleId: 'day',
     name: 'Torta de Frango',
+    image: '/products/torta-frango.webp',
     description:
       'Fatia de torta salgada com massa macia e delicioso recheio de frango.',
     price: 12.9,
