@@ -39,12 +39,17 @@ export function ProductCard({
             }}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04] min-[540px]:static"
           />
-          {product.badge ? <span className="product-badge">{product.badge}</span> : null}
+          {product.badge ? (
+            <span className="product-badge max-[539px]:hidden">{product.badge}</span>
+          ) : null}
         </div>
       ) : null}
       <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
-        {product.badge && !product.image ? (
-          <span className="product-badge-inline">{product.badge}</span>
+        {product.badge ? (
+          // Com foto, o selo fica sobre a foto a partir de 540px; no celular, aqui.
+          <span className={`product-badge-inline ${product.image ? 'min-[540px]:hidden' : ''}`}>
+            {product.badge}
+          </span>
         ) : null}
         <h3 className="font-display text-base leading-tight uppercase text-ink min-[540px]:text-xl sm:text-lg">
           {product.name}

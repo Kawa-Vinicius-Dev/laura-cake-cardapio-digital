@@ -490,6 +490,9 @@ function App() {
               <p className="max-w-sm text-base leading-7 text-ink/60 sm:text-sm sm:leading-6">
                 Salgados, lanches, pratos, doces e bebidas preparados para todos os
                 momentos.
+                <span className="mt-1 block text-xs text-ink/45">
+                  Imagens meramente ilustrativas.
+                </span>
               </p>
             </div>
 
